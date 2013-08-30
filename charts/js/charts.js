@@ -573,27 +573,7 @@ var chart;
             }
 
 
-/*
-            if (chart.dpInfos[dp]) {
-                var nameappend = dp.split(".");
-                if (nameappend[1]) {
-                    nameappend = " "+nameappend[1];
-                } else {
-                    nameappend = "";
-                }
-                if (chart.dpInfos[dp].ValueUnit) {
-                    nameappend += " ["+$("<div/>").html(chart.dpInfos[dp].ValueUnit).text()+"]";
-                }
 
-                name = chart.dpInfos[dp].ChannelName +nameappend;
-                valueSuffix = $("<div/>").html(chart.dpInfos[dp].ValueUnit).text();
-
-            } else {
-                name = chart.cuxdConfig.REVALIASES[dp];
-                valueSuffix = "";
-                return false;
-            }
-*/
             var marker = {
                 enabled: false,
                 states: {
