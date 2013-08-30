@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
+<head>
+    <title>CCU.IO-Highcharts Menü</title>
+    <link rel="stylesheet" type="text/css" href="css/overcast/jquery-ui.css"/>
+    <link rel="stylesheet" type="text/css" href="css/menu.css"/>
+    <link rel="stylesheet" type="text/css" href="css/jquery.multiselect.css"/>
+    <link rel="stylesheet" type="text/css" href="css/jquery.multiselect.filter.css"/>
+    <script src="/lib/js/jquery-1.10.2.min.js"></script>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/highstock.js"></script>
+    <script src="js/jquery-ui.min.js"></script>
+    <script src="js/jquery.multiselect.min.js"></script>
+    <script src="js/jquery.multiselect.filter.js"></script>
+    <script src="js/loStorage.js"></script>
+    <script src="js/charts.js"></script>
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+
+
+            $(".chart-version").html(chart.version);
+
+            $("#credits").html("<a target='_blank' href='https://github.com/hobbyquaker/CCU.IO-Highcharts'>CCU.IO-Highcharts</a> " + chart.version + " copyright (c) 2013 <a target='_blank' href='http://hobbyquaker.github.io/'>hobbyquaker</a>  - Lizenz: <a target='_blank' href='http://creativecommons.org/licenses/by-nc/3.0/de/'>CC BY-NC 3.0 DE</a>  - Verwendet <a target='_blank' href='http://www.highcharts.com'>Highstock</a> - kommerzielle Nutzung untersagt!").
+                    attr("href", "https://github.com/hobbyquaker/CCU-IO-Highcharts");
+
+
+
+            var link = window.location.href.replace(/menu\.html/, '?');
+
+            $("select.simple").multiselect({
+                multiple: false,
+                header: false,
+                //noneSelectedText: "Select an Option",
+                selectedList: 1
+            });
+
+            $("a.link:first" ).button({
+                icons: {
+                    primary: "ui-icon-newwin"
+                }
+            });
+           $("select").change(function () {
+               var val = [];
+               $(this).find("option:selected").each(function() {
+                   val.push($(this).val());
+               });
+               updateLink($(this).attr("id"), val.join(","));
+           });
+
+            $(".link").attr("href", link );
+
+            // Verbindung zu CCU.IO herstellen.
+            chart.socket = io.connect( $(location).attr('protocol') + '//' +  $(location).attr('host'));
+
+            chart.socket.emit('getObjects', function(obj) {
+                chart.regaObjects = obj;
+                // Weiter gehts mit dem Laden des Index
+                chart.socket.emit('getIndex', function(obj) {
+                    chart.regaIndex = obj;
+
+                    chart.ajaxDone();
+
+                    for (var i = 0; i < chart.regaIndex.VARDP.length; i++) {
+                        var id = chart.regaIndex.VARDP[i];
+                        $("#dp").append("<option value='"+id+"'>VARDP "+chart.regaObjects[id].Name+"</option>");
+                        $("#navserie").append("<option value='"+id+"'>VARDP "+chart.regaObjects[id].Name+"</option>");
+                    }
+
+
+
+                    for (var i = 0; i < chart.regaIndex.HSSDP.length; i++) {
+                        var id = chart.regaIndex.HSSDP[i];
+                        var chId = chart.regaObjects[id].Parent;
+                        $("#dp").append("<option value='"+id+"'>HSSDP "+chart.regaObjects[chId].Name+" "+chart.regaObjects[id].Name+"</option>");
+                        $("#navserie").append("<option value='"+id+"'>HSSDP "+chart.regaObjects[chId].Name+" "+chart.regaObjects[id].Name+"</option>");
+                    }
+
+                    $("#dp").multiselect({
+                        minWidth: 462,
+                        height: 260,
+                        noneSelectedText: "Datenreihen: alle",
+                        selectedText: "Datenreihen: # ausgewählt",
+
+                        checkAllText: "alle auswählen",
+                        uncheckAllText: "Auswahl aufheben"
+                    }).multiselectfilter({
+                                placeholder: ""
+                            });
+
+                    $("#navserie").multiselect({
+                        minWidth: 462,
+                        height: 260,
+                        noneSelectedText: "Navigator: -",
+                        selectedText: function(numChecked, numTotal, checkedItems){
+                            console.log(checkedItems);
+                            return "Navigator: "+checkedItems[0].title;
+                        },
+                        multiple: false
+                    }).multiselectfilter({
+                                placeholder: ""
+                            });
+
+
+
+                });
+            });
+
+
+
+
+
+            function updateLink(id, val) {
+                console.log("change "+id+"="+val);
+                    link = link.replace((new RegExp("&?"+id+"=?[^&]*")), "");
+
+                    if (val && val != "") {
+                        if (link.slice(-1) != "?" && link.slice(-1) != "&") {
+                            link = link + "&";
+                        }
+                        link = link + id + "=" + val;
+                    }
+
+                    $(".link").attr("href", link );
+
+                };
+
+        });
+    </script>
+
+</head>
+<body>
+<div id="title">
+    <span style="font-size:16px; font-style: italic;">CUxD-Highcharts  <span class="cuxchart-version"></span></span><br/>
+</div>
+<div id="">
+
+    <br/><br/><br/>
+
+
+
+    <div class="head">
+        <select id="dp" multiple="multiple" name="dp"></select>
+        <a style="margin-left:90px;" class="link" target="_blank" href="#">Charts anzeigen</a>
+        <h4>Navigator</h4>
+        <select id="navserie" multiple="multiple" name="navserie"></select>
+        <span style="display:inline-block; width: 4px;"></span>
+        <select class="simple" multiple="multiple" id="navigator">
+            <option value="" selected="selected">anzeigen</option>
+            <option value="false">nicht anzeigen</option>
+        </select>
+
+    </div>
+
+    <div class="block">
+        <h4>von CCU laden</h4>
+        <select class="simple" multiple="multiple" id="period" name="period">
+            <option value="1">1 Stunde</option>
+            <option value="2">2 Stunden</option>
+            <option value="6">6 Stunden</option>
+            <option value="12">12 Stunden</option>
+            <option value="24">1 Tag</option>
+            <option value="72">3 Tage</option>
+            <option value="120">5 Tage</option>
+            <option value="168">1 Woche</option>
+            <option value="336">2 Wochen</option>
+            <option value="720">1 Monat</option>
+            <option value="2160">3 Monate</option>
+            <option value="4320">6 Monate</option>
+            <option value="8760">1 Jahr</option>
+            <option value="" selected="selected">unbegrenzt</option>
+        </select>
+        <h4>Zoomstufe</h4>
+        <select class="simple" multiple="multiple" id="range" name="range">
+            <option value="1">1 Stunde</option>
+            <option value="2">2 Stunden</option>
+            <option value="6">6 Stunden</option>
+            <option value="12">12 Stunden</option>
+            <option value="24">1 Tag</option>
+            <option value="72">3 Tage</option>
+            <option value="120">5 Tage</option>
+            <option value="168">1 Woche</option>
+            <option value="336">2 Wochen</option>
+            <option value="720">1 Monat</option>
+            <option value="2160">3 Monate</option>
+            <option value="4320">6 Monate</option>
+            <option value="8760">1 Jahr</option>
+            <option value="" selected="selected">automatisch</option>
+        </select>
+
+        <h4>Aggregation</h4>
+        <select class="simple" multiple="multiple" id="grouping">
+            <option value="" selected="selected">dynamisch</option>
+            <option value="false">deaktiviert</option>
+        </select>
+    </div>
+    <div class="block">
+        <h4>Theme</h4>
+        <select class="simple" multiple="multiple" id="theme">
+            <option value="" selected="selected">-</option>
+            <option value="grid">grid</option>
+            <option value="dark-green">dark-green</option>
+            <option value="skies">skies</option>
+            <option value="dark-blue">dark-blue</option>
+            <option value="gray">gray</option>
+        </select>
+
+        <h4>Lade-Anzeige</h4>
+        <select class="simple" multiple="multiple" id="loader">
+            <option value="" selected="selected">anzeigen</option>
+            <option value="false">nicht anzeigen</option>
+        </select>
+
+        <h4>Legende</h4>
+        <select class="simple" multiple="multiple" id="legend">
+            <option value="" selected="selected">Links</option>
+            <option value="inline">im Chart</option>
+            <option value="false">nicht anzeigen</option>
+        </select>
+
+    </div>
+    <div class="block">
+
+
+        <h4>Beschriftung y-Achse</h4>
+        <select class="simple" multiple="multiple" id="percentaxis">
+            <option value="" selected="selected">Links</option>
+            <option value="true">Links und Rechts (%)</option>
+        </select>
+
+        <h4>Scrollbar</h4>
+        <select class="simple" multiple="multiple" id="scrollbar">
+            <option value="" selected="selected">anzeigen</option>
+            <option value="false">nicht anzeigen</option>
+        </select>
+
+        <h4>Zoomen</h4>
+        <select class="simple" multiple="multiple" id="zoom">
+            <option value="" selected="selected">aktiviert</option>
+            <option value="false">deaktiviert</option>
+        </select>
+
+
+
+    </div>
+    <p style="clear: both">
+    <span id="credits"></span>
+    </p>
+    
+
+</div>
+
+</body>
+</html>
