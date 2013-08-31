@@ -18,7 +18,7 @@ var chart;
 ;(function ($) {
 
     chart = {
-        version: "0.9.1",
+        version: "0.9.2",
         socket: {},
         regaObjects: {},
         regaIndex: {},
@@ -91,19 +91,7 @@ var chart;
                 second = (second.length == 1 ? "0" + second : second);
                 chart.start = year + "-" + month + "-" + day + "T" + hour + ":" + minute + ":" + second;
             }
-            chart.cache = storage.get(chart.storageKey);
-            if (!chart.cache) {
-                chart.cache = {};
-            }
 
-            if (chart.queryParams["dp"]) {
-                var tmpArr = chart.queryParams["dp"].split(",");
-                if (tmpArr.length < 5) {
-                    chart.cache.visible = tmpArr;
-                } else {
-                    chart.cache.visible = tmpArr;
-                }
-            }
 
             Highcharts.setOptions({
                 lang: {
