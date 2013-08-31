@@ -18,7 +18,7 @@ var chart;
 ;(function ($) {
 
     chart = {
-        version: "0.9.0",
+        version: "0.9.1",
         socket: {},
         regaObjects: {},
         regaIndex: {},
@@ -186,6 +186,12 @@ var chart;
             if (chart.queryParams["navserie"]) {
                 chart.addSeries(chart.queryParams["navserie"], true);
             }
+            var exporting = false;
+            if (chart.queryParams["exporting"]) {
+                exporting = true;
+            }
+
+
 
             chart.chartOptions = {
                 chart: {
@@ -196,7 +202,7 @@ var chart;
                     }
                 },
                 exporting: {
-                    enabled: true,
+                    enabled: exporting,
                     sourceWidth: 1920,
                     sourceHeight: 1080
 
@@ -280,7 +286,7 @@ var chart;
                         var dpObj = chart.regaObjects[this.series.options.chart];
                         var tmpName;
                         if (dpObj.Parent) {
-                            tmpName = chart.regaObjects[dpObj.Parent].Name+" "+chart.regaObjects[this.series.options.chart].Name;
+                            tmpName = chart.regaObjects[dpObj.Parent].Name+"<br/>"+chart.regaObjects[this.series.options.chart].Name;
                         } else {
                             tmpName = chart.regaObjects[this.series.options.chart].Name;
                         }
@@ -390,7 +396,14 @@ var chart;
                 var dataArr = data.split("\n");
                 var l = dataArr.length;
 
-                var DPs = chart.queryParams["dp"].split(",");
+                if (chart.queryParams["dp"]) {
+                    var DPs = chart.queryParams["dp"].split(",");
+                } else {
+                    $(".ajax-loader").removeClass("ajax-loader").addClass("ajax-fail");
+                    $("#loader_output2").prepend("<b>Fehler: </b>Keine Datenpunkte ausgewählt!<br/>");
+                    $.error("Keine Datenpunkte ausgewählt!");
+
+                }
                 var tmpArr = [];
                 for (var i = 0; i < l; i++) {
                     var triple = dataArr[i].split(" ");
@@ -401,7 +414,21 @@ var chart;
                             // Todo Leerzeichen im Value behandeln!
                         }
                         if (!tmpArr[triple[1]]) { tmpArr[triple[1]] = []; }
-                        tmpArr[triple[1]].push([triple[0]*1000, parseFloat(triple[2])]);
+                        var val = triple[2];
+                        if (val === false) {
+                            val = 0;
+                        } else if (val === true) {
+                            val = 1;
+                        } else {
+                            val = parseFloat(val);
+                        }
+
+                        if (isNaN(val)) {
+                            val = 0;
+                        }
+                        if (!isNaN(triple[0])) {
+                            tmpArr[triple[1]].push([triple[0]*1000, val]);
+                        }
 
                     }
 
@@ -428,13 +455,11 @@ var chart;
                 // Keine weiteren Logs vorhanden.
                 $("#chart_skip").hide();
 
-                    chart.ajaxDone();
-                    $("#loader_output2").prepend("<span class='ajax-loader'></span> initialisiere Highcharts");
-                    for (var dp in chart.logData) {
-                        console.log(dp);
-                        chart.addSeries(dp);
-
-                    }
+                chart.ajaxDone();
+                $("#loader_output2").prepend("<span class='ajax-loader'></span> initialisiere Highcharts");
+                for (var dp in chart.logData) {
+                    chart.addSeries(dp);
+                }
                 $("#loader").hide();
                 $("#loader_small").hide();
                     chart.renderChart();
@@ -551,16 +576,21 @@ var chart;
                 var name, valueSuffix, type, step;
 
             var dptype;
-            var unit = "";
 
             var regaObj = chart.regaObjects[dp];
             var chId = regaObj.Parent;
 
+            var unit = "";
+            if (chart.regaObjects[dp].ValueUnit) {
+                unit = " ["+$("<div/>").html(chart.regaObjects[dp].ValueUnit).text()+"]";
+            }
+
+
             if (chId) {
-                name = chart.regaObjects[chId].Name + " " + chart.regaObjects[dp].Name;
                 var tmpType = chart.regaObjects[dp].Name.split(".");
                 dptype = tmpType[2];
-                console.log("dptype: "+dptype);
+                name = chart.regaObjects[chId].Name + " " + dptype + unit;
+
             } else {
                 name = regaObj.Name;
 
@@ -593,34 +623,34 @@ var chart;
             switch (dptype) {
                 case "METER":
                 case "RAIN_CTR":
-                    type = "column",
+                    type = "column";
 
-                        grouping = {
-                            enabled: true,
-                            approximation: function (data) {
-                                var approx = data[data.length-1]-data[0];
-                                return (approx ? approx : 0);
-                            },
-                            forced: false,
-                            groupPixelWidth: 40,
-                            units: [[
-                                'minute',
-                                [30]
-                            ], [
-                                'hour',
-                                [1, 2, 6, 12]
-                            ], [
-                                'day',
-                                [1]
-                            ], [
-                                'week',
-                                [1]
-                            ], [
-                                'month',
-                                [1]
-                            ]]
+                    grouping = {
+                        enabled: true,
+                        approximation: function (data) {
+                            var approx = data[data.length-1]-data[0];
+                            return (approx ? approx : 0);
+                        },
+                        forced: false,
+                        groupPixelWidth: 40,
+                        units: [[
+                            'minute',
+                            [30]
+                        ], [
+                            'hour',
+                            [1, 2, 6, 12]
+                        ], [
+                            'day',
+                            [1]
+                        ], [
+                            'week',
+                            [1]
+                        ], [
+                            'month',
+                            [1]
+                        ]]
 
-                        }
+                    };
                     valueDecimals = 3;
                     break;
 
