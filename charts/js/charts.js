@@ -18,7 +18,7 @@ var chart;
 ;(function ($) {
 
     chart = {
-        version: "0.9.2",
+        version: "0.9.3",
         socket: {},
         regaObjects: {},
         regaIndex: {},
@@ -171,9 +171,6 @@ var chart;
                 };
             }
 
-            if (chart.queryParams["navserie"]) {
-                chart.addSeries(chart.queryParams["navserie"], true);
-            }
             var exporting = false;
             if (chart.queryParams["exporting"]) {
                 exporting = true;
@@ -445,6 +442,11 @@ var chart;
 
                 chart.ajaxDone();
                 $("#loader_output2").prepend("<span class='ajax-loader'></span> initialisiere Highcharts");
+
+                if (chart.queryParams["navserie"]) {
+                    chart.addSeries(chart.queryParams["navserie"], true);
+                }
+
                 for (var dp in chart.logData) {
                     chart.addSeries(dp);
                 }
@@ -566,10 +568,15 @@ var chart;
             var dptype;
 
             var regaObj = chart.regaObjects[dp];
-            var chId = regaObj.Parent;
+            if (regaObj) {
+                var chId = regaObj.Parent;
+                console.log("dp "+dp+" found!");
+            } else {
+                console.log("dp "+dp+" not found :-(");
+            }
 
             var unit = "";
-            if (chart.regaObjects[dp].ValueUnit) {
+            if (regaObj && regaObj.ValueUnit) {
                 unit = " ["+$("<div/>").html(chart.regaObjects[dp].ValueUnit).text()+"]";
             }
 
