@@ -18,7 +18,7 @@
 (function ($) {
 
     chart = {
-        version: "0.9.4",
+        version: "0.9.5",
         socket: {},
         regaObjects: {},
         regaIndex: {},
@@ -400,9 +400,9 @@
                         }
                         if (!tmpArr[triple[1]]) { tmpArr[triple[1]] = []; }
                         var val = triple[2];
-                        if (val === false) {
+                        if (val === false || val === "false") {
                             val = 0;
-                        } else if (val === true) {
+                        } else if (val === true || val === "true") {
                             val = 1;
                         } else {
                             val = parseFloat(val);
