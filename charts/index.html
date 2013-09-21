@@ -21,7 +21,10 @@
                     return;
                 }
                 else {
-                    window.location.href = window.location.href + "menu.html";
+                    if (window.location.href.lastIndexOf('/') != -1)
+                        window.location.href = window.location.href.substring(0, window.location.href.lastIndexOf('/')+1) + "menu.html";
+                    else if (window.location.href.indexOf ("menu.html") == -1)
+                        window.location.href = window.location.href + "menu.html";
                 }
             }
 
