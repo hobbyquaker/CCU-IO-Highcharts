@@ -13,7 +13,7 @@
  *
  */
 
-;var chart;
+;var chart; 
 
 (function ($) {
 
