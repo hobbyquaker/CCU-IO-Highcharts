@@ -391,13 +391,9 @@
                 }
                 var tmpArr = [];
                 for (var i = 0; i < l; i++) {
-                    var triple = dataArr[i].split(" ");
+                    var triple = dataArr[i].split(" ", 3);
 
-                    if (DPs.indexOf(triple[1]) !== -1) {
-                        var k = triple.length;
-                        if (k > 3) {
-                            // Todo Leerzeichen im Value behandeln!
-                        }
+                    if (k == 3 && DPs.indexOf(triple[1]) !== -1) {
                         if (!tmpArr[triple[1]]) { tmpArr[triple[1]] = []; }
                         var val = triple[2];
                         if (val === false || val === "false") {
