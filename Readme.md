@@ -1,6 +1,6 @@
 # CCU.IO-Highcharts
 
-aktuelle Version: 0.9.8
+aktuelle Version: 0.9.9
 
 Visualisierung der CCU.IO Logs mittels Highcharts/Highstock
 
