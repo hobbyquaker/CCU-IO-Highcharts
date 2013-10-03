@@ -17,6 +17,9 @@ Visualisierung der CCU.IO Logs mittels Highcharts/Highstock
 
 ## Changelog
 
+### 0.9.9
+  * (Hobbyquaker) kleine Schönheitskorrektur: Menüseite wird erst angezeigt wenn Multiselects aufgebaut sind
+
 ### 0.9.8
   * (Hobbyquaker) Laden der Logs via jQuery.ajax statt via Socket.IO -> alte Logs verbleiben im Browser-Cache -> bessere Perfomance! erfordert CCU.IO >= 0.9.28
 

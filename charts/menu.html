@@ -19,7 +19,6 @@
 
 
             $(".chart-version").html(chart.version);
-
             $("#credits").html("<a target='_blank' href='https://github.com/hobbyquaker/CCU.IO-Highcharts'>CCU.IO-Highcharts</a> " + chart.version + " copyright (c) 2013 <a target='_blank' href='http://hobbyquaker.github.io/'>hobbyquaker</a>  - Lizenz: <a target='_blank' href='http://creativecommons.org/licenses/by-nc/3.0/de/'>CC BY-NC 3.0 DE</a>  - Verwendet <a target='_blank' href='http://www.highcharts.com'>Highstock</a> - kommerzielle Nutzung untersagt!").
                     attr("href", "https://github.com/hobbyquaker/CCU-IO-Highcharts");
 
@@ -108,7 +107,7 @@
                         placeholder: ""
                     });
 
-
+                    $("#loader_small").hide();
 
                 });
             });
@@ -144,6 +143,9 @@
 
 </head>
 <body>
+<div id="loader_small" style="background-color: white; vertical-align: middle; text-align: center; z-index:500; position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; margin: 0 auto; ">
+    <span class="ajax-loader-small"></span>
+</div>
 <div id="title">
     <span style="font-size:16px; font-style: italic;">CCU.IO-Highcharts  <span class="chart-version"></span></span><br/>
 </div>
