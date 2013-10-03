@@ -17,6 +17,9 @@ Visualisierung der CCU.IO Logs mittels Highcharts/Highstock
 
 ## Changelog
 
+### 0.9.10
+  * (Hobbyquaker) Live-Update der Charts
+
 ### 0.9.9
   * (Hobbyquaker) kleine Schönheitskorrektur: Menüseite wird erst angezeigt wenn Multiselects aufgebaut sind
 

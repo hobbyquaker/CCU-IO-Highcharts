@@ -18,7 +18,7 @@
 (function ($) {
 
     chart = {
-        version: "0.9.9",
+        version: "0.9.10",
         socket: {},
         regaObjects: {},
         regaIndex: {},
@@ -78,21 +78,7 @@
 
             if (chart.queryParams["period"]) {
                 var now = Math.floor(new Date().getTime() / 1000);
-                /*var dateObj = new Date(now - (parseInt(chart.queryParams["period"], 10) * 3600000));
-                var year = dateObj.getFullYear();
-                var month = (dateObj.getMonth() + 1).toString(10);
-                month = (month.length == 1 ? "0" + month : month);
-                var day = dateObj.getDate().toString(10);
-                day = (day.length == 1 ? "0" + day : day);
-                var hour = dateObj.getHours().toString(10);
-                hour = (hour.length == 1 ? "0" + hour : hour);
-                var minute = dateObj.getMinutes().toString(10);
-                minute = (minute.length == 1 ? "0" + minute : minute);
-                var second = dateObj.getSeconds().toString(10);
-                second = (second.length == 1 ? "0" + second : second);
-                chart.start = year + "-" + month + "-" + day + "T" + hour + ":" + minute + ":" + second;*/
                 chart.start = now - (parseInt(chart.queryParams["period"], 10) * 3600);
-
             }
 
 
@@ -736,9 +722,10 @@
                 yAxis = 0;
             }
 
-            console.log(chart.logData[dp]);
+            console.log("addSeries chart:"+dp+" name:"+name);
             var serie = {
                 chart: dp,
+                id: dp,
                 name: name,
                 type: type,
                 step: step,
@@ -800,7 +787,7 @@
                         break;
 
                 }
-                console.log(serie);
+                //console.log(serie);
                 chart.chartOptions.navigator.series = serie;
             }
 
@@ -813,8 +800,23 @@
 
             // Von CCU.IO empfangene Events verarbeiten
             chart.socket.on('event', function(obj) {
-                //console.log(obj);
-                // id = obj[0], value = obj[1], timestamp = obj[2], acknowledge = obj[3]
+                // id = obj[0], value = obj[1], timestamp = obj[2], acknowledge = obj[3], lastchange = obj[4]
+                // addPoint (Object options, [Boolean redraw], [Boolean shift], [Mixed animation])
+
+                var id = obj[0];
+                var ts = (new Date(obj[2].replace(/ /, "T")).getTime());
+                var val = obj[1];
+                if (val == true || val == "true") { val = 1; }
+                if (val == false || val == "false") { val = 0; }
+                val = parseFloat(val);
+                if (isNaN(val)) { val = 0; }
+
+                var uchart = chart.chart.get(id);
+
+                if (uchart) {
+                    console.log("addPoint id="+id+" ts="+ts+" val="+val);
+                    uchart.addPoint([ts,val]);
+                }
 
             });
 
