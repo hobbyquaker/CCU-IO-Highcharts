@@ -1,6 +1,6 @@
 # CCU.IO-Highcharts
 
-aktuelle Version: 0.9.6
+aktuelle Version: 0.9.7
 
 Visualisierung der CCU.IO Logs mittels Highcharts/Highstock
 
@@ -16,6 +16,9 @@ Visualisierung der CCU.IO Logs mittels Highcharts/Highstock
   * Perfomance-Optimierung
 
 ## Changelog
+
+### 0.9.7
+  * (Hobbyquaker) Bugfix period-Parameter
 
 ### 0.9.6
 

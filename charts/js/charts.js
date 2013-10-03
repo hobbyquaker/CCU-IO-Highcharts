@@ -18,7 +18,7 @@
 (function ($) {
 
     chart = {
-        version: "0.9.6",
+        version: "0.9.7",
         socket: {},
         regaObjects: {},
         regaIndex: {},
@@ -77,9 +77,9 @@
             }
 
             if (chart.queryParams["period"]) {
-                var now = new Date().getTime();
-                var dateObj = new Date(now - (parseFloat(chart.queryParams["period"]) * 3600000));
-                /*var year = dateObj.getFullYear();
+                var now = Math.floor(new Date().getTime() / 1000);
+                /*var dateObj = new Date(now - (parseInt(chart.queryParams["period"], 10) * 3600000));
+                var year = dateObj.getFullYear();
                 var month = (dateObj.getMonth() + 1).toString(10);
                 month = (month.length == 1 ? "0" + month : month);
                 var day = dateObj.getDate().toString(10);
@@ -91,7 +91,8 @@
                 var second = dateObj.getSeconds().toString(10);
                 second = (second.length == 1 ? "0" + second : second);
                 chart.start = year + "-" + month + "-" + day + "T" + hour + ":" + minute + ":" + second;*/
-                chart.start = Math.floor(dateObj.getTime() / 1000);
+                chart.start = now - (parseInt(chart.queryParams["period"], 10) * 3600);
+
             }
 
 
@@ -415,12 +416,12 @@
                             val = 0;
                         }
                         if (!isNaN(triple[0])) {
-                            if (triple[0] < chart.start) {
-                                console.log("OLD!");
+                            if (triple[0] >= chart.start) {
+                                tmpArr[triple[1]].push([triple[0]*1000, val]);
+                            } else {
                                 chart.done = true;
-                                break;
                             }
-                            tmpArr[triple[1]].push([triple[0]*1000, val]);
+
                         }
 
                     }
