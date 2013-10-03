@@ -18,7 +18,7 @@
 (function ($) {
 
     chart = {
-        version: "0.9.5",
+        version: "0.9.6",
         socket: {},
         regaObjects: {},
         regaIndex: {},
@@ -46,6 +46,7 @@
         //    OLDLOGS: []
         //},
         dates: {},
+        done: false,
         getDpInfos: function (callback) {
 
         },
@@ -78,7 +79,7 @@
             if (chart.queryParams["period"]) {
                 var now = new Date().getTime();
                 var dateObj = new Date(now - (parseFloat(chart.queryParams["period"]) * 3600000));
-                var year = dateObj.getFullYear();
+                /*var year = dateObj.getFullYear();
                 var month = (dateObj.getMonth() + 1).toString(10);
                 month = (month.length == 1 ? "0" + month : month);
                 var day = dateObj.getDate().toString(10);
@@ -89,7 +90,8 @@
                 minute = (minute.length == 1 ? "0" + minute : minute);
                 var second = dateObj.getSeconds().toString(10);
                 second = (second.length == 1 ? "0" + second : second);
-                chart.start = year + "-" + month + "-" + day + "T" + hour + ":" + minute + ":" + second;
+                chart.start = year + "-" + month + "-" + day + "T" + hour + ":" + minute + ":" + second;*/
+                chart.start = Math.floor(dateObj.getTime() / 1000);
             }
 
 
@@ -319,18 +321,21 @@
                         case 1:
                             selectedRange = 0;
                             break;
-                        case 24:
+                        case 6:
                             selectedRange = 1;
                             break;
-                        case 168:
+                        case 24:
                             selectedRange = 2;
+                            break;
+                        case 168:
+                            selectedRange = 3;
                             break;
                         case 720:
                         case 744:
-                            selectedRange = 3;
+                            selectedRange = 4;
                             break;
                         case 8760:
-                            selectedRange = 4;
+                            selectedRange = 5;
                             break;
                     }
                 }
@@ -375,6 +380,8 @@
         loadLog: function (log, callback) {
             $("#loader_output2").prepend("<span class='ajax-loader'></span> lade "+log+" ");
 
+            console.log("chart.start="+chart.start);
+
             chart.socket.emit('readRawFile', 'log/'+log, function (data) {
                 chart.ajaxDone();
                 $("#loader_output2").prepend("<span class='ajax-loader'></span> verarbeite "+log+" ");
@@ -391,13 +398,9 @@
                 }
                 var tmpArr = [];
                 for (var i = 0; i < l; i++) {
-                    var triple = dataArr[i].split(" ");
+                    var triple = dataArr[i].split(" ", 3);
 
                     if (DPs.indexOf(triple[1]) !== -1) {
-                        var k = triple.length;
-                        if (k > 3) {
-                            // Todo Leerzeichen im Value behandeln!
-                        }
                         if (!tmpArr[triple[1]]) { tmpArr[triple[1]] = []; }
                         var val = triple[2];
                         if (val === false || val === "false") {
@@ -412,6 +415,11 @@
                             val = 0;
                         }
                         if (!isNaN(triple[0])) {
+                            if (triple[0] < chart.start) {
+                                console.log("OLD!");
+                                chart.done = true;
+                                break;
+                            }
                             tmpArr[triple[1]].push([triple[0]*1000, val]);
                         }
 
@@ -434,7 +442,7 @@
         loadOldLogs: function (callback) {
             $("#chart_skip").show();
             var log = chart.oldLogs.pop();
-            if (log) {
+            if (log && !chart.done) {
                 chart.loadLog(log, chart.loadOldLogs, true);
             } else {
                 // Keine weiteren Logs vorhanden.

@@ -1,6 +1,6 @@
 # CCU.IO-Highcharts
 
-aktuelle Version: 0.9.5
+aktuelle Version: 0.9.6
 
 Visualisierung der CCU.IO Logs mittels Highcharts/Highstock
 
@@ -13,6 +13,17 @@ Visualisierung der CCU.IO Logs mittels Highcharts/Highstock
 ## Todo/Roadmap
 
   * Live-Aktualisierung der Charts
+  * Perfomance-Optimierung
+
+## Changelog
+
+### 0.9.6
+
+  * (Hobbyquaker) Bugfix period-Parameter
+  * (Hobbyquaker) Bugfix range-Parameter
+  * (Bluefox) automatische Weiterleitung zur Menü-Seite wenn keine Datenpunkte gewählt sind
+  * (Bluefox) Leerzeichen im Value
+
 
 ## Copyright, Lizenz, Bedingungen
 
