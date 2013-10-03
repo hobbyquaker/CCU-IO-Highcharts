@@ -18,7 +18,7 @@
 (function ($) {
 
     chart = {
-        version: "0.9.7",
+        version: "0.9.8",
         socket: {},
         regaObjects: {},
         regaIndex: {},
@@ -381,9 +381,16 @@
         loadLog: function (log, callback) {
             $("#loader_output2").prepend("<span class='ajax-loader'></span> lade "+log+" ");
 
-            console.log("chart.start="+chart.start);
+            //chart.socket.emit('readRawFile', 'log/'+log, function (data) {
 
-            chart.socket.emit('readRawFile', 'log/'+log, function (data) {
+            if (log.match(/log$/)) {
+                log = log + "?" + (new Date().getTime());
+            }
+
+            $.ajax({
+                type: "GET",
+                url: '/log/'+log,
+                success: function (data) {
                 chart.ajaxDone();
                 $("#loader_output2").prepend("<span class='ajax-loader'></span> verarbeite "+log+" ");
                 var dataArr = data.split("\n");
@@ -436,6 +443,7 @@
 
                 chart.ajaxDone();
                 callback();
+            }
             });
 
 

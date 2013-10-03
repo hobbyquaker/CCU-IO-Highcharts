@@ -1,6 +1,6 @@
 # CCU.IO-Highcharts
 
-aktuelle Version: 0.9.7
+aktuelle Version: 0.9.8
 
 Visualisierung der CCU.IO Logs mittels Highcharts/Highstock
 
@@ -16,6 +16,9 @@ Visualisierung der CCU.IO Logs mittels Highcharts/Highstock
   * Perfomance-Optimierung
 
 ## Changelog
+
+### 0.9.8
+  * (Hobbyquaker) Laden der Logs via jQuery.ajax statt via Socket.IO -> alte Logs verbleiben im Browser-Cache -> bessere Perfomance! erfordert CCU.IO >= 0.9.28
 
 ### 0.9.7
   * (Hobbyquaker) Bugfix period-Parameter
