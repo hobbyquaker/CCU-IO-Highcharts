@@ -18,7 +18,7 @@
 (function ($) {
 
     chart = {
-        version: "0.9.10",
+        version: "0.9.11",
         socket: {},
         regaObjects: {},
         regaIndex: {},
@@ -39,24 +39,12 @@
         countDp: 0,
         countVal: 0,
         dpInfos: {},
-        //revDpInfos: {},
-        //cuxdConfig: {
-        //    ALIASES: {},
-        //    REVALIASES: {},
-        //    OLDLOGS: []
-        //},
         dates: {},
         done: false,
+        progressDone: 0,
+        progressTodo: 0,
         getDpInfos: function (callback) {
 
-        },
-        saveSettings: function () {
-            var visible = [];
-            for (var key in chart.chart.series) {
-                if (chart.chart.series[key].visible) {
-                    visible.push(chart.chart.series[key].name);
-                }
-            }
         },
         renderChart: function () {
             chart.chart = new Highcharts.StockChart(chart.chartOptions);
@@ -79,8 +67,8 @@
             if (chart.queryParams["period"]) {
                 var now = Math.floor(new Date().getTime() / 1000);
                 chart.start = now - (parseInt(chart.queryParams["period"], 10) * 3600);
+                chart.progressTodo = Math.ceil(parseFloat(chart.queryParams["period"]) / 24) + 2;
             }
-
 
             Highcharts.setOptions({
                 lang: {
@@ -122,7 +110,6 @@
                     enabled: false
                 };
 
-
             } else {
 
                 legend = {
@@ -146,12 +133,8 @@
                     series: {
                         type: "line"
                     }
-
                 };
-
-
             } else {
-
                 navigator = {
                     enabled: true,
                     series: {
@@ -164,9 +147,6 @@
             if (chart.queryParams["exporting"]) {
                 exporting = true;
             }
-
-
-
             chart.chartOptions = {
                 chart: {
                     renderTo: 'chart',
@@ -206,9 +186,6 @@
                 navigator: navigator,
                 tooltip: {
                     shared: false,
-                    //valueDecimals: 3,
-                    //xDateFormat: "%e. %b %Y %H:%M:%S",
-
                     formatter: function() {
                         var date;
                         //console.log(this);
@@ -226,25 +203,18 @@
                             if (endDate == "00:00") { endDate = "24:00"; }
                             if (pointRange < 3600000) {
                                 date += (pointRange / 60000) + " Minuten</i><br/>";
-
                                 date += Highcharts.dateFormat("%e. %b %Y %H:%M", this.x);
                                 date += "-";
                                 date += endDate;
-
                             } else if (pointRange < 86400000) {
                                 date += (pointRange / 3600000) + " Stunde"+(pointRange > 3600000 ? "n" : "")+"</i><br/>";
-
                                 date += Highcharts.dateFormat("%e. %b %Y %H:%M", this.x);
                                 date += "-";
                                 date += endDate;
-
                             } else {
                                 date += (pointRange / 86400000) + " Tag"+(pointRange > 86400000 ? "e" : "")+"</i><br/>";
-
                                 date += Highcharts.dateFormat("%e. %b %Y", this.x);
-
                             }
-
                         } else {
                             date = Highcharts.dateFormat("%e. %b %Y %H:%M:%S", this.x);
                         }
@@ -360,14 +330,10 @@
             if (chart.queryParams["zoom"] == "false") {
                 chart.chartOptions.chart.zoomType = undefined;
             }
-            //console.log(chart.first);
-            //console.log(chart.chartOptions);
-            //chart.chart = new Highcharts.StockChart();
+
         },
         loadLog: function (log, callback) {
             $("#loader_output2").prepend("<span class='ajax-loader'></span> lade "+log+" ");
-
-            //chart.socket.emit('readRawFile', 'log/'+log, function (data) {
 
             if (log.match(/log$/)) {
                 log = log + "?" + (new Date().getTime());
@@ -377,62 +343,61 @@
                 type: "GET",
                 url: '/log/'+log,
                 success: function (data) {
-                chart.ajaxDone();
-                $("#loader_output2").prepend("<span class='ajax-loader'></span> verarbeite "+log+" ");
-                var dataArr = data.split("\n");
-                var l = dataArr.length;
+                    chart.progressDone += 1;
+                    chart.progress();
+                    chart.ajaxDone();
+                    $("#loader_output2").prepend("<span class='ajax-loader'></span> verarbeite "+log+" ");
+                    var dataArr = data.split("\n");
+                    var l = dataArr.length;
 
-                if (chart.queryParams["dp"]) {
-                    var DPs = chart.queryParams["dp"].split(",");
-                } else {
-                    $(".ajax-loader").removeClass("ajax-loader").addClass("ajax-fail");
-                    $("#loader_output2").prepend("<b>Fehler: </b>Keine Datenpunkte ausgewählt!<br/>");
-                    $.error("Keine Datenpunkte ausgewählt!");
+                    if (chart.queryParams["dp"]) {
+                        var DPs = chart.queryParams["dp"].split(",");
+                    } else {
+                        $(".ajax-loader").removeClass("ajax-loader").addClass("ajax-fail");
+                        $("#loader_output2").prepend("<b>Fehler: </b>Keine Datenpunkte ausgewählt!<br/>");
+                        $.error("Keine Datenpunkte ausgewählt!");
 
-                }
-                var tmpArr = [];
-                for (var i = 0; i < l; i++) {
-                    var triple = dataArr[i].split(" ", 3);
+                    }
+                    var tmpArr = [];
+                    for (var i = 0; i < l; i++) {
+                        var triple = dataArr[i].split(" ", 3);
 
-                    if (DPs.indexOf(triple[1]) !== -1) {
-                        if (!tmpArr[triple[1]]) { tmpArr[triple[1]] = []; }
-                        var val = triple[2];
-                        if (val === false || val === "false") {
-                            val = 0;
-                        } else if (val === true || val === "true") {
-                            val = 1;
-                        } else {
-                            val = parseFloat(val);
-                        }
-
-                        if (isNaN(val)) {
-                            val = 0;
-                        }
-                        if (!isNaN(triple[0])) {
-                            if (triple[0] >= chart.start) {
-                                tmpArr[triple[1]].push([triple[0]*1000, val]);
+                        if (DPs.indexOf(triple[1]) !== -1) {
+                            if (!tmpArr[triple[1]]) { tmpArr[triple[1]] = []; }
+                            var val = triple[2];
+                            if (val === false || val === "false") {
+                                val = 0;
+                            } else if (val === true || val === "true") {
+                                val = 1;
                             } else {
-                                chart.done = true;
+                                val = parseFloat(val);
+                            }
+
+                            if (isNaN(val)) {
+                                val = 0;
+                            }
+                            if (!isNaN(triple[0])) {
+                                if (triple[0] >= chart.start) {
+                                    tmpArr[triple[1]].push([triple[0]*1000, val]);
+                                } else {
+                                    chart.done = true;
+                                }
+
                             }
 
                         }
 
                     }
+                    // vorne anfügen
+                    for (var tmpDp in tmpArr) {
+                        if (!chart.logData[tmpDp]) { chart.logData[tmpDp] = []; }
+                        chart.logData[tmpDp] = tmpArr[tmpDp].concat(chart.logData[tmpDp]);
+                    }
 
+                    chart.ajaxDone();
+                    callback();
                 }
-                // vorne anfügen
-                for (var tmpDp in tmpArr) {
-                    if (!chart.logData[tmpDp]) { chart.logData[tmpDp] = []; }
-                    chart.logData[tmpDp] = tmpArr[tmpDp].concat(chart.logData[tmpDp]);
-                }
-
-
-                chart.ajaxDone();
-                callback();
-            }
             });
-
-
         },
         loadOldLogs: function (callback) {
             $("#chart_skip").show();
@@ -455,42 +420,11 @@
                 }
                 $("#loader").hide();
                 $("#loader_small").hide();
-                    chart.renderChart();
-                    /*
-                    var tmpArr = [];
-                    for (var dp in chart.dates) {
-                        var tmp = dp.split(".");
-                        if (!tmp[1]) { tmp[1] = ""; } else { tmp[1] = "." + tmp[1]; }
-                        tmpArr.push(chart.dpInfos[dp].ChannelName + tmp[1]);
-                    }
-                    tmpArr.sort();
-                    var serie;
-                    for (var i = 0; i<tmpArr.length; i++) {
-                        if (chart.revDpInfos[tmpArr[i]]) {
-                            serie = chart.revDpInfos[tmpArr[i]];
-                        } else {
-                            serie = tmpArr[i];
-                        }
-                        chart.addSeries(serie);
-                    }
 
+                chart.progressDone += 1;
+                chart.progress();
 
-                    if (!chart.queryParams["navserie"]) {
-                        chart.chartOptions.navigator.series.data = [[chart.parseDate(((chart.start > chart.first) ? chart.start : chart.first)),0],[chart.parseDate(chart.last),0]];
-                    } else {
-                        chart.addSeries(chart.queryParams["navserie"], true)
-                    }
-
-
-                    setTimeout(function () {
-                        //chart.ajaxDone();
-                        $("#loader").hide();
-                        $("#loader_small").hide();
-                        chart.renderChart();
-                    }, 1);
-                     */
-
-
+                chart.renderChart();
 
             }
 
@@ -516,6 +450,10 @@
                     chart.socket.emit('readdir', "log", function (obj) {
                         chart.ajaxDone();
                         var files = [];
+                        if (chart.progressTodo == 0) {
+                            chart.progressTodo = obj.length - 2;
+                            if (chart.progressTodo < 1) { chart.progressTodo = 1; }
+                        }
                         for (var i = 0; i < obj.length; i++) {
                             if (obj[i].match(/devices\-variables\.log\./)) {
                                 files.push(obj[i]);
@@ -573,7 +511,7 @@
             var regaObj = chart.regaObjects[dp];
             if (regaObj) {
                 var chId = regaObj.Parent;
-                console.log("dp "+dp+" found!");
+                //console.log("dp "+dp+" found!");
             } else {
                 console.log("dp "+dp+" not found :-(");
             }
@@ -722,10 +660,10 @@
                 yAxis = 0;
             }
 
-            console.log("addSeries chart:"+dp+" name:"+name);
+            //console.log("addSeries chart:"+dp+" name:"+name);
             var serie = {
                 chart: dp,
-                id: dp,
+                id: "chart_"+dp.toString(),
                 name: name,
                 type: type,
                 step: step,
@@ -755,7 +693,7 @@
             }
 
             if (chart.queryParams["grouping"] == "false") {
-                console.log("disable grouping");
+                //console.log("disable grouping");
                 serie.dataGrouping = {enabled:false};
             }
             if (chart.queryParams["area"] == "true") {
@@ -790,44 +728,64 @@
                 //console.log(serie);
                 chart.chartOptions.navigator.series = serie;
             }
-
-
         },
         init: function () {
+
+            $("#progressbar").progressbar({
+                value: 0
+            }).height(16);
+            $("#progressbar").progressbar("value", 0);
 
             // Verbindung zu CCU.IO herstellen.
             chart.socket = io.connect( $(location).attr('protocol') + '//' +  $(location).attr('host'));
 
-            // Von CCU.IO empfangene Events verarbeiten
-            chart.socket.on('event', function(obj) {
-                // id = obj[0], value = obj[1], timestamp = obj[2], acknowledge = obj[3], lastchange = obj[4]
-                // addPoint (Object options, [Boolean redraw], [Boolean shift], [Mixed animation])
-
-                var id = obj[0];
-                var ts = (new Date(obj[2].replace(/ /, "T")).getTime());
-                var val = obj[1];
-                if (val == true || val == "true") { val = 1; }
-                if (val == false || val == "false") { val = 0; }
-                val = parseFloat(val);
-                if (isNaN(val)) { val = 0; }
-
-                var uchart = chart.chart.get(id);
-
-                if (uchart) {
-                    console.log("addPoint id="+id+" ts="+ts+" val="+val);
-                    uchart.addPoint([ts,val]);
-                }
-
+            chart.socket.on('connect', function() {
+                chart.progressDone += 1;
+                chart.progress();
             });
 
+
+
+            // Von CCU.IO empfangene Events verarbeiten
+            if (chart.queryParams["export"] != "false") {
+
+                chart.socket.on('event', function(obj) {
+                    // id = obj[0], value = obj[1], timestamp = obj[2], acknowledge = obj[3], lastchange = obj[4]
+                    // addPoint (Object options, [Boolean redraw], [Boolean shift], [Mixed animation])
+
+                    var id = obj[0].toString();
+                    var ts = (new Date(obj[2]).getTime());
+                    var val = obj[1];
+                    if (val == true || val == "true") { val = 1; }
+                    if (val == false || val == "false") { val = 0; }
+                    val = parseFloat(val);
+                    if (isNaN(val)) { val = 0; }
+
+                    var uchart = chart.chart.get("chart_"+id);
+
+                    if (uchart) {
+                        //console.log("addPoint id="+id+" ts="+ts+" val="+val);
+                        uchart.addPoint([ts,val]);
+                    }
+
+                });
+            }
 
             $(".chart-version").html(chart.version);
             $("#chart_skip").click(function () {
 
             });
             chart.initHighcharts();
+
             chart.loadData();
 
+        },
+        progress: function () {
+            var progressPercent = Math.floor(100 / (chart.progressTodo / chart.progressDone));
+            if (!isFinite(progressPercent)) { progressPercent = 0; }
+            //console.log("progress "+progressPercent);
+            if (progressPercent > 100) { progressPercent = 100; }
+            $("#progressbar").progressbar("value", progressPercent );
         }
     };
 
@@ -835,8 +793,7 @@
         var vars = {}, hash;
         if (window.location.href.indexOf('?') == -1) { return {}; }
         var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
-        for(var i = 0; i < hashes.length; i++)
-        {
+        for(var i = 0; i < hashes.length; i++) {
             hash = hashes[i].split('=');
             if (hash[0] && hash[0] != "") {
                 vars[hash[0]] = hash[1];
@@ -844,7 +801,5 @@
         }
         return vars;
     }
-
-
 
 })(jQuery);

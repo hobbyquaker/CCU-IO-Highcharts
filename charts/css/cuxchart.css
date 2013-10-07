@@ -96,3 +96,18 @@ table#stats {
     padding: 10px;
 
 }
+
+.ajax-loader-progress {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width:240px;
+    height: 16px;
+    margin:-8px 0 0 -120px;
+
+}
+
+.ui-progressbar-value.ui-widget-header {
+    background: url(/charts/img/progress.png);
+    display: none;
+}

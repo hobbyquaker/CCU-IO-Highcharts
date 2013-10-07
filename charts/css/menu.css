@@ -56,3 +56,12 @@ button.ui-multiselect {
     margin:-16px 0 0 -16px;
 
 }
+.ajax-loader-progress {
+   position: absolute;
+    top: 50%;
+    left: 50%;
+    width:120px;
+    height: 32px;
+    margin:-16px 0 0 -60px;
+
+}

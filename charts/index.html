@@ -3,7 +3,10 @@
 <head>
     <title>CCU.IO-Highcharts</title>
     <link rel="stylesheet" type="text/css" href="css/cuxchart.css"/>
+    <link rel="stylesheet" type="text/css" href="css/overcast/jquery-ui.css"/>
     <script src="/lib/js/jquery-1.10.2.min.js"></script>
+    <script src="js/jquery-ui-1.10.3.full.min.js"></script>
+
     <script src="/socket.io/socket.io.js"></script>
     <script src="js/highstock.js"></script>
     <script src="js/exporting.js"></script>
@@ -17,6 +20,7 @@
             } else {
                 chart.init();
             }
+
         });
     </script>
 </head>
@@ -36,7 +40,8 @@
     </div>
 </div>
 <div id="loader_small" style="vertical-align: middle; text-align: center; z-index:500; position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; margin: 0 auto; ">
-    <span class="ajax-loader-small"></span>
+
+    <span class="ajax-loader-progress"><div id="progressbar"></div></span>
 </div>
 </body>
 </html>
