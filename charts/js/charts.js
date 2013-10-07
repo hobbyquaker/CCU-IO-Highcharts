@@ -41,13 +41,15 @@
         dpInfos: {},
         dates: {},
         done: false,
+        ready: false,
         progressDone: 0,
-        progressTodo: 0,
+        progressTodo: 100,
         getDpInfos: function (callback) {
 
         },
         renderChart: function () {
             chart.chart = new Highcharts.StockChart(chart.chartOptions);
+            chart.ready = true;
         },
         initHighcharts: function () {
 
@@ -67,7 +69,7 @@
             if (chart.queryParams["period"]) {
                 var now = Math.floor(new Date().getTime() / 1000);
                 chart.start = now - (parseInt(chart.queryParams["period"], 10) * 3600);
-                chart.progressTodo = Math.ceil(parseFloat(chart.queryParams["period"]) / 24) + 2;
+                chart.progressTodo = Math.ceil(parseFloat(chart.queryParams["period"]) / 24) + 4;
             }
 
             Highcharts.setOptions({
@@ -436,11 +438,17 @@
         loadData: function () {
             $("#loader_output2").prepend("<span class='ajax-loader'></span> lade ReGaHSS-Objekte");
             chart.socket.emit('getObjects', function(obj) {
+                chart.progressDone += 1;
+                chart.progress();
+
                 chart.regaObjects = obj;
                 chart.ajaxDone();
                 $("#loader_output2").prepend("<span class='ajax-loader'></span> lade ReGaHSS-Index");
                 // Weiter gehts mit dem Laden des Index
                 chart.socket.emit('getIndex', function(obj) {
+                    chart.progressDone += 1;
+                    chart.progress();
+
                     chart.regaIndex = obj;
 
                     chart.ajaxDone();
@@ -449,10 +457,12 @@
                     // alte Logfiles finden
                     chart.socket.emit('readdir', "log", function (obj) {
                         chart.ajaxDone();
+                        chart.progressDone += 1;
+                        chart.progress();
+
                         var files = [];
-                        if (chart.progressTodo == 0) {
-                            chart.progressTodo = obj.length - 2;
-                            if (chart.progressTodo < 1) { chart.progressTodo = 1; }
+                        if (!chart.queryParams["period"] || parseFloat(chart.queryParams["period"]) == 0) {
+                            chart.progressTodo = obj.length + 1;
                         }
                         for (var i = 0; i < obj.length; i++) {
                             if (obj[i].match(/devices\-variables\.log\./)) {
@@ -731,10 +741,9 @@
         },
         init: function () {
 
-            $("#progressbar").progressbar({
+            $(".progressbar").progressbar({
                 value: 0
             }).height(16);
-            $("#progressbar").progressbar("value", 0);
 
             // Verbindung zu CCU.IO herstellen.
             chart.socket = io.connect( $(location).attr('protocol') + '//' +  $(location).attr('host'));
@@ -750,24 +759,25 @@
             if (chart.queryParams["export"] != "false") {
 
                 chart.socket.on('event', function(obj) {
-                    // id = obj[0], value = obj[1], timestamp = obj[2], acknowledge = obj[3], lastchange = obj[4]
-                    // addPoint (Object options, [Boolean redraw], [Boolean shift], [Mixed animation])
+                    if (chart.ready) {
+                        // id = obj[0], value = obj[1], timestamp = obj[2], acknowledge = obj[3], lastchange = obj[4]
+                        // addPoint (Object options, [Boolean redraw], [Boolean shift], [Mixed animation])
 
-                    var id = obj[0].toString();
-                    var ts = (new Date(obj[2]).getTime());
-                    var val = obj[1];
-                    if (val == true || val == "true") { val = 1; }
-                    if (val == false || val == "false") { val = 0; }
-                    val = parseFloat(val);
-                    if (isNaN(val)) { val = 0; }
+                        var id = obj[0].toString();
+                        var ts = (new Date(obj[2]).getTime());
+                        var val = obj[1];
+                        if (val == true || val == "true") { val = 1; }
+                        if (val == false || val == "false") { val = 0; }
+                        val = parseFloat(val);
+                        if (isNaN(val)) { val = 0; }
 
-                    var uchart = chart.chart.get("chart_"+id);
+                        var uchart = chart.chart.get("chart_"+id);
 
-                    if (uchart) {
-                        //console.log("addPoint id="+id+" ts="+ts+" val="+val);
-                        uchart.addPoint([ts,val]);
+                        if (uchart) {
+                            //console.log("addPoint id="+id+" ts="+ts+" val="+val);
+                            uchart.addPoint([ts,val]);
+                        }
                     }
-
                 });
             }
 
@@ -781,11 +791,12 @@
 
         },
         progress: function () {
+            //console.log("todo="+chart.progressTodo+" done="+chart.progressDone);
             var progressPercent = Math.floor(100 / (chart.progressTodo / chart.progressDone));
             if (!isFinite(progressPercent)) { progressPercent = 0; }
             //console.log("progress "+progressPercent);
             if (progressPercent > 100) { progressPercent = 100; }
-            $("#progressbar").progressbar("value", progressPercent );
+            $(".progressbar").progressbar("value", progressPercent );
         }
     };
 
