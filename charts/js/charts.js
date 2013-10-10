@@ -18,7 +18,7 @@
 (function ($) {
 
     chart = {
-        version: "0.9.11",
+        version: "0.9.12",
         socket: {},
         regaObjects: {},
         regaIndex: {},
@@ -607,6 +607,7 @@
                 case "HUM_MIN_24H":
                     yAxis = 1;
                 case "TEMPERATURE":
+                case "ACTUAL_TEMPERATURE":
                 case "DEW_POINT":
                 case "TEMP_MAX_24H":
                 case "TEMP_MIN_24H":

@@ -1,6 +1,6 @@
 # CCU.IO-Highcharts
 
-aktuelle Version: 0.9.9
+aktuelle Version: 0.9.12
 
 Visualisierung der CCU.IO Logs mittels Highcharts/Highstock
 
@@ -16,6 +16,12 @@ Visualisierung der CCU.IO Logs mittels Highcharts/Highstock
   * Perfomance-Optimierung
 
 ## Changelog
+
+### 0.9.12
+  * (Hobbyquaker) Chart-Type spline für ACTUAL_TEMPERATURE
+
+### 0.9.11
+  * (Hobbyquaker) Bugfixes Live-Update
 
 ### 0.9.10
   * (Hobbyquaker) Live-Update der Charts
