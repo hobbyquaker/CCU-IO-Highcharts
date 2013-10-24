@@ -633,7 +633,6 @@
                 case "PRESS_SHORT":
                 case "PRESS_LONG":
                 case "PRESS_OPEN":
-                case "MOTION":
                     yAxis = 1,
                         marker = {
                             enabled: true
