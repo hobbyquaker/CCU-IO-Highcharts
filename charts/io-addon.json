@@ -1,6 +1,8 @@
 {
-    "version": "0.9.12",
+    "version": "1.0.0",
     "name": "CCU.IO-Highcharts",
+    "ident": "CHARTS",
+    "dirname": "charts",
     "urlHomepage": "https://github.com/hobbyquaker/CCU-IO-Highcharts",
     "urlDownload": "https://github.com/hobbyquaker/CCU-IO-Highcharts/archive/master.zip",
     "urlMeta": "https://raw.github.com/hobbyquaker/CCU-IO-Highcharts/master/charts/io-addon.json"

@@ -2,162 +2,34 @@
 <html xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
 <head>
     <title>CCU.IO-Highcharts Menü</title>
-    <link rel="stylesheet" type="text/css" href="css/overcast/jquery-ui.css"/>
+    <link rel="stylesheet" type="text/css" href="/lib/css/themes/jquery-ui/overcast/jquery-ui.css"/>
     <link rel="stylesheet" type="text/css" href="css/menu.css"/>
-    <link rel="stylesheet" type="text/css" href="css/jquery.multiselect.css"/>
-    <link rel="stylesheet" type="text/css" href="css/jquery.multiselect.filter.css"/>
+    <link rel="stylesheet" type="text/css" href="/lib/css/jquery.multiselect-1.13.css"/>
+    <link rel="stylesheet" type="text/css" href="/lib/css/jquery.multiselect.filter.css"/>
     <script src="/lib/js/jquery-1.10.2.min.js"></script>
     <script src="/socket.io/socket.io.js"></script>
-    <script src="js/highstock.js"></script>
-    <script src="js/jquery-ui.min.js"></script>
-    <script src="js/jquery.multiselect.min.js"></script>
-    <script src="js/jquery.multiselect.filter.js"></script>
+    <script src="/lib/js/jquery-ui-1.10.3.full.min.js"></script>
+    <script src="/lib/js/jquery.multiselect-1.13.js"></script>
+    <script src="/lib/js/jquery.multiselect.filter-1.5pre.js"></script>
     <script src="js/charts.js"></script>
-    <script type="text/javascript">
-        $(document).ready(function () {
-
-
-
-            $(".chart-version").html(chart.version);
-            $("#credits").html("<a target='_blank' href='https://github.com/hobbyquaker/CCU.IO-Highcharts'>CCU.IO-Highcharts</a> " + chart.version + " copyright (c) 2013 <a target='_blank' href='http://hobbyquaker.github.io/'>hobbyquaker</a>  - Lizenz: <a target='_blank' href='http://creativecommons.org/licenses/by-nc/3.0/de/'>CC BY-NC 3.0 DE</a>  - Verwendet <a target='_blank' href='http://www.highcharts.com'>Highstock</a> - kommerzielle Nutzung untersagt!").
-                    attr("href", "https://github.com/hobbyquaker/CCU-IO-Highcharts");
-
-
-
-            var link = window.location.href.replace(/menu\.html/, '?');
-
-            $("select.simple").multiselect({
-                multiple: false,
-                header: false,
-                //noneSelectedText: "Select an Option",
-                selectedList: 1
-            });
-
-            $("a.link:first" ).button({
-                icons: {
-                    primary: "ui-icon-newwin"
-                }
-            });
-           $("select").change(function () {
-               var val = [];
-               $(this).find("option:selected").each(function() {
-                   val.push($(this).val());
-               });
-               updateLink($(this).attr("id"), val.join(","));
-           });
-
-            $(".link").attr("href", link );
-
-            // Verbindung zu CCU.IO herstellen.
-            chart.socket = io.connect( $(location).attr('protocol') + '//' +  $(location).attr('host'));
-
-            chart.socket.emit('getObjects', function(obj) {
-                chart.regaObjects = obj;
-                // Weiter gehts mit dem Laden des Index
-                chart.socket.emit('getIndex', function(obj) {
-                    chart.regaIndex = obj;
-
-                    chart.ajaxDone();
-
-                    for (var i = 0; i < chart.regaIndex.VARDP.length; i++) {
-                        var id = chart.regaIndex.VARDP[i];
-                        $("#dp").append("<option value='"+id+"'>VARDP "+chart.regaObjects[id].Name+"</option>");
-                        $("#navserie").append("<option value='"+id+"'>VARDP "+chart.regaObjects[id].Name+"</option>");
-                    }
-
-
-
-                    for (var i = 0; i < chart.regaIndex.HSSDP.length; i++) {
-                        var id = chart.regaIndex.HSSDP[i];
-                        var chId = chart.regaObjects[id].Parent;
-
-                        var unit = "";
-                        if (chart.regaObjects[id].ValueUnit) {
-                            unit = " ["+chart.regaObjects[id].ValueUnit+"]";
-                        }
-                        var tmp = chart.regaObjects[id].Name.split(".");
-                        var dpName = tmp[2];
-
-                        $("#dp").append("<option value='"+id+"'>HSSDP "+chart.regaObjects[chId].Name+" "+dpName+unit+"</option>");
-                        $("#navserie").append("<option value='"+id+"'>HSSDP "+chart.regaObjects[chId].Name+" "+dpName+unit+"</option>");
-                    }
-
-                    $("#dp").multiselect({
-                        minWidth: 462,
-                        height: 260,
-                        noneSelectedText: "Datenreihen: keine ausgewählt",
-                        selectedText: "Datenreihen: # ausgewählt",
-
-                        checkAllText: "alle auswählen",
-                        uncheckAllText: "Auswahl aufheben"
-                    }).multiselectfilter({
-                        placeholder: ""
-                    });
-
-                    $("#navserie").multiselect({
-                        minWidth: 462,
-                        height: 260,
-                        noneSelectedText: "Navigator: -",
-                        selectedText: function(numChecked, numTotal, checkedItems){
-                            console.log(checkedItems);
-                            return "Navigator: "+checkedItems[0].title;
-                        },
-                        multiple: false
-                    }).multiselectfilter({
-                        placeholder: ""
-                    });
-
-                    $("#loader_small").hide();
-
-                });
-            });
-
-
-
-
-
-            function updateLink(id, val) {
-                console.log("change "+id+"="+val);
-
-                if (id == "dp" && val != "") {
-
-                } else {
-
-                }
-
-                link = link.replace((new RegExp("&?"+id+"=?[^&]*")), "");
-
-                if (val && val != "") {
-                    if (link.slice(-1) != "?" && link.slice(-1) != "&") {
-                        link = link + "&";
-                    }
-                    link = link + id + "=" + val;
-                }
-
-                $(".link").attr("href", link );
-
-            };
-
-        });
-    </script>
-
+    <script src="js/menu.js"></script>
 </head>
 <body>
+
 <div id="loader_small" style="background-color: white; vertical-align: middle; text-align: center; z-index:500; position: absolute; top: 0px; left: 0px; width: 100%; height: 100%; margin: 0 auto; ">
     <span class="ajax-loader-small"></span>
 </div>
+
 <div id="title">
     <span style="font-size:16px; font-style: italic;">CCU.IO-Highcharts  <span class="chart-version"></span></span><br/>
 </div>
+
 <div id="">
-
     <br/><br/><br/>
-
-
 
     <div class="head">
         <select id="dp" multiple="multiple" name="dp"></select>
-        <a style="margin-left:90px;" class="link" target="_blank" href="#">Charts anzeigen</a>
+        <a style="margin-left:90px;" class="link" target="_blank" href="?">Charts anzeigen</a>
         <h4>Navigator</h4>
         <select id="navserie" multiple="multiple" name="navserie"></select>
         <span style="display:inline-block; width: 4px;"></span>
@@ -165,7 +37,6 @@
             <option value="" selected="selected">anzeigen</option>
             <option value="false">nicht anzeigen</option>
         </select>
-
     </div>
 
     <div class="block">
@@ -216,7 +87,6 @@
             <option value="false">deaktiviert</option>
         </select>
 
-
     </div>
     <div class="block">
         <h4>Theme</h4>
@@ -248,10 +118,8 @@
             <option value="true">anzeigen</option>
         </select>
 
-
     </div>
     <div class="block">
-
 
         <h4>Beschriftung y-Achse</h4>
         <select class="simple" multiple="multiple" id="percentaxis">
@@ -271,13 +139,11 @@
             <option value="false">deaktiviert</option>
         </select>
 
-
-
     </div>
+
     <p style="clear: both">
     <span id="credits"></span>
     </p>
-    
 
 </div>
 

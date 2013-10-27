@@ -17,4 +17,149 @@
  *
  */
 
+var config = {
+
+    standard: {
+        type: "line",
+        step: "left",
+        yAxis: 0,
+        marker: {
+            enabled: false,
+            states: {
+                hover: {
+                    enabled: true
+                }
+            }
+        },
+        valueDecimals: 3,
+        pointWidth: 16,
+        grouping: {
+            enabled: false
+        }
+    },
+
+    dpTypes: {
+        "LEVEL": {
+            yAxis: 1,
+            valueDecimals: 0
+        },
+        STATE: {
+            yAxis: 1,
+            valueDecimals: 0,
+            factor: 100
+        },
+        SETPOINT: {
+            marker: {
+                enabled: true
+            }
+        },
+        BRIGHTNESS: {
+            type: "spline",
+            step: null,
+            valueDecimals: 0
+        },
+        "HUMIDITY": {
+            type: "spline",
+            step: null,
+            yAxis: 1,
+            valueDecimals: 0
+        },
+        "HUM_MAX_24H": {
+            type: "spline",
+            step: null,
+            yAxis: 1,
+            valueDecimals: 0
+        },
+        "HUM_MIN_24H": {
+            type: "spline",
+            step: null,
+            yAxis: 1,
+            valueDecimals: 0
+        },
+        "HUMIDITYF": {
+            type: "spline",
+            step: null,
+            yAxis: 1,
+            valueDecimals: 0
+        },
+        "VALVE_STATE": {
+            valueDecimals: 0,
+            yAxis: 1
+        },
+        "TEMPERATURE": {
+            valueDecimals: 1,
+            type: "spline",
+            step: null
+        },
+        "ACTUAL_TEMPERATURE": {
+            valueDecimals: 1,
+            type: "spline",
+            step: null
+        },
+        "PRESS_SHORT": {
+            yAxis: 1,
+            marker: {
+                enabled: true
+            },
+            factor: 100,
+            type: "scatter"
+        },
+        "PRESS_LONG": {
+            yAxis: 1,
+            marker: {
+                enabled: true
+            },
+            factor: 100,
+            type: "scatter"
+        },
+        "MOTION": {
+            yAxis: 1,
+            factor: 100
+        },
+        "MEAN5MINUTES": {
+            type: "spline",
+            step: null,
+            valueDecimals: 3
+        },
+        "METER": {
+            type: "column",
+            dataGrouping: {
+                enabled: true,
+                approximation: function (data) {
+                    var approx = data[data.length-1]-data[0];
+                    return (approx ? approx : 0);
+                },
+                forced: false,
+                groupPixelWidth: 40,
+                units: [[
+                    'minute',
+                    [30]
+                ], [
+                    'hour',
+                    [1, 2, 6, 12]
+                ], [
+                    'day',
+                    [1]
+                ], [
+                    'week',
+                    [1]
+                ], [
+                    'month',
+                    [1]
+                ]]
+
+            }
+        }
+    },
+
+    // Nur zur Angabe von Faktoren
+    channelDpTypes: {
+        // Drehgriffsensor Faktor 50: gekippt = 50%, geöffnet = 100%
+        "ROTARY_HANDLE_SENSOR": {
+            "STATE": {
+                factor: 50
+            }
+        }
+    }
+};
 

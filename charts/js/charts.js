@@ -18,7 +18,8 @@
 (function ($) {
 
     chart = {
-        version: "0.9.12",
+        version: "1.0.0",
+        requiredCcuIoVersion: "0.9.62",
         socket: {},
         regaObjects: {},
         regaIndex: {},
@@ -27,26 +28,11 @@
         chart: undefined,
         chartOptions: {},
         queryParams: getUrlVars(),
-        storageKey: "chart",
-        storageMenu: "chart_menu",
-        cache: {
-            visible: []
-        },
-        first: "2038-01-18T00:00:00",
-        last: "0000-00-00T00:00:00",
         start: "0000-00-00T00:00:00",
-        //tzOffset: 60000 * (new Date().getTimezoneOffset()),
-        countDp: 0,
-        countVal: 0,
-        dpInfos: {},
-        dates: {},
         done: false,
         ready: false,
         progressDone: 0,
         progressTodo: 100,
-        getDpInfos: function (callback) {
-
-        },
         renderChart: function () {
             chart.chart = new Highcharts.StockChart(chart.chartOptions);
             chart.ready = true;
@@ -54,7 +40,7 @@
         initHighcharts: function () {
 
             if (chart.queryParams["theme"]) {
-                $.getScript('themes/' + chart.queryParams.theme+".js", function () {
+                $.getScript('/lib/js/highstock/themes/' + chart.queryParams.theme+".js", function () {
                     $("body").css("color", Highcharts.theme.legend.itemStyle.color);
                     if (Highcharts.theme.chart.backgroundColor && Highcharts.theme.chart.backgroundColor.stops) { $("body").css("background-color", Highcharts.theme.chart.backgroundColor.stops[0][1]); }
                     $(".loader-output").css("border-color", Highcharts.theme.legend.itemStyle.color);
@@ -257,6 +243,17 @@
                     },
                     opposite: true
                 });
+                chart.chartOptions.yAxis.push({
+                    title: {
+                        text: ""
+                    },
+                    labels: {
+                        formatter: function() {
+                            return this.value;
+                        }
+                    },
+                    opposite: true
+                });
             }
 
             if (chart.queryParams["scrollbar"] == "false") {
@@ -293,9 +290,7 @@
                         case 744:
                             selectedRange = 4;
                             break;
-                        case 8760:
-                            selectedRange = 5;
-                            break;
+
                     }
                 }
                 chart.chartOptions.rangeSelector = {
@@ -323,7 +318,7 @@
                     }, {
                         type : 'year',
                         count : 1,
-                        text : '1J'
+                        text : '1Y'
                     }],
                     selected : selectedRange,
                     inputEnabled : true
@@ -367,6 +362,7 @@
                         if (DPs.indexOf(triple[1]) !== -1) {
                             if (!tmpArr[triple[1]]) { tmpArr[triple[1]] = []; }
                             var val = triple[2];
+
                             if (val === false || val === "false") {
                                 val = 0;
                             } else if (val === true || val === "true") {
@@ -375,11 +371,41 @@
                                 val = parseFloat(val);
                             }
 
+                            if (chart.regaObjects[triple[1]]) {
+
+                                var nameArr = chart.regaObjects[triple[1]].Name.split(".");
+
+                                if (chart.regaObjects[triple[1]].Parent) {
+
+                                    if (config.channelDpTypes[chart.regaObjects[chart.regaObjects[triple[1]].Parent].HssType] && config.channelDpTypes[chart.regaObjects[chart.regaObjects[triple[1]].Parent].HssType][nameArr[2]] && config.channelDpTypes[chart.regaObjects[chart.regaObjects[triple[1]].Parent].HssType][nameArr[2]].factor) {
+                                        val = val * config.channelDpTypes[chart.regaObjects[chart.regaObjects[triple[1]].Parent].HssType][nameArr[2]].factor;
+                                    } else {
+                                        if (nameArr[2] && config.dpTypes[nameArr[2]] && config.dpTypes[nameArr[2]].factor) {
+                                            val = val * config.dpTypes[nameArr[2]].factor;
+                                        }
+
+                                    }
+
+                                } else {
+
+                                    if (nameArr[2] && config.dpTypes[nameArr[2]] && config.dpTypes[nameArr[2]].factor) {
+                                        val = val * config.dpTypes[nameArr[2]].factor;
+                                    }
+
+                                }
+
+                                if (chart.regaObjects[triple[1]].ValueUnit == "100%") {
+                                    val = val * 100;
+                                }
+
+                            }
+
                             if (isNaN(val)) {
                                 val = 0;
                             }
+
                             if (!isNaN(triple[0])) {
-                                if (triple[0] >= chart.start) {
+                                if (triple[0] >= (chart.start)) {
                                     tmpArr[triple[1]].push([triple[0]*1000, val]);
                                 } else {
                                     chart.done = true;
@@ -387,6 +413,12 @@
 
                             }
 
+                        }
+
+                        if (!isNaN(triple[0]) && triple[0] != 0 && triple[0] != "") {
+                            if (triple[0] < (chart.start)) {
+                                chart.done = true;
+                            }
                         }
 
                     }
@@ -476,7 +508,6 @@
 
                     })
 
-
                 });
             });
 
@@ -488,40 +519,13 @@
         },
         addSeries: function (dp, navserie) {
 
-            var visible = true;
-            /*
-             if (chart.cache && chart.cache.visible && chart.cache.visible.length > 0) {
-                if ($.inArray(dp, chart.cache.visible) == -1) {
-                    visible = false;
-                } else {
-                    if (chart.cache.visible.length < 5) {
-                        visible = true;
-                    } else {
-                        if (chart.chartOptions.series.length > 0) {
-                            visible = false;
-                        } else {
-                            visible = true;
-                        }
-                    }
-                }
+            var visible = true,
+                name,
+                dptype,
+                regaObj = chart.regaObjects[dp];
 
-            } else {
-                if (chart.chartOptions.series.length > 0) {
-                    visible = false;
-                } else {
-                    visible = true;
-                }
-
-            }
-                 */
-                var name, valueSuffix, type, step;
-
-            var dptype;
-
-            var regaObj = chart.regaObjects[dp];
             if (regaObj) {
                 var chId = regaObj.Parent;
-                //console.log("dp "+dp+" found!");
             } else {
                 console.log("dp "+dp+" not found :-(");
             }
@@ -531,159 +535,26 @@
                 unit = " ["+$("<div/>").html(chart.regaObjects[dp].ValueUnit).text()+"]";
             }
 
-
             if (chId) {
                 var tmpType = chart.regaObjects[dp].Name.split(".");
                 dptype = tmpType[2];
                 name = chart.regaObjects[chId].Name + " " + dptype + unit;
-
             } else {
                 name = regaObj.Name;
-
                 dptype = undefined;
-
             }
 
             if (chart.regaObjects[dp].ValueUnit) {
                 unit = chart.regaObjects[dp].ValueUnit;
+                if (unit == "100%") { unit = "%"; }
             }
 
-
-
-            var marker = {
-                enabled: false,
-                states: {
-                    hover: {
-                        enabled: true
-                    }
-                }
-            };
-            var step = undefined;
-            var valueDecimals = 3;
-            var factor = 1;
-            var yAxis = 0;
-            var grouping = undefined;
-
-
-
-            switch (dptype) {
-                case "METER":
-                case "RAIN_CTR":
-                    type = "column";
-
-                    grouping = {
-                        enabled: true,
-                        approximation: function (data) {
-                            var approx = data[data.length-1]-data[0];
-                            return (approx ? approx : 0);
-                        },
-                        forced: false,
-                        groupPixelWidth: 40,
-                        units: [[
-                            'minute',
-                            [30]
-                        ], [
-                            'hour',
-                            [1, 2, 6, 12]
-                        ], [
-                            'day',
-                            [1]
-                        ], [
-                            'week',
-                            [1]
-                        ], [
-                            'month',
-                            [1]
-                        ]]
-
-                    };
-                    valueDecimals = 3;
-                    break;
-
-                case "HUMIDITY":
-                case "HUMIDITYF":
-                case "ABS_HUMIDITY":
-                case "HUM_MAX_24H":
-                case "HUM_MIN_24H":
-                    yAxis = 1;
-                case "TEMPERATURE":
-                case "ACTUAL_TEMPERATURE":
-                case "DEW_POINT":
-                case "TEMP_MAX_24H":
-                case "TEMP_MIN_24H":
-                    valueDecimals = 1;
-                    type = "spline";
-                    break;
-                case "MEAN5MINUTES":
-                    valueDecimals = 3;
-                    type = "spline";
-                    break;
-                case "BRIGHTNESS":
-                    valueDecimals = 0;
-                    type = "spline";
-                    break;
-                case "LEVEL":
-                    type = "line";
-                    step = "left";
-                    unit = "%";
-                    yAxis = 1;
-                    valueDecimals = 2;
-                    break;
-
-                case "PRESS_SHORT":
-                case "PRESS_LONG":
-                case "PRESS_OPEN":
-                case "MOTION":
-                    yAxis = 1,
-                        marker = {
-                            enabled: true
-                        };
-                    factor = 5;
-                    type = "scatter";
-                    break;
-                /*case "SETPOINT":
-                    marker = {
-                        enabled: true
-                    };
-                    valueDecimals = 1;
-                    type = "line";
-                    step = "left";
-                    grouping = { enabled: false };
-
-                    break;*/
-                case "VALVE_STATE":
-                    valueDecimals = 0;
-                    type = "line";
-                    step = "left";
-                    grouping = { enabled: false };
-                    unit = "%";
-                    yAxis = 1;
-
-                    break;
-                default:
-                    valueDecimals = 3;
-                    type = "line";
-                    step = "left";
-
-            }
-
-            if (chart.queryParams["percentaxis"] != "true") {
-                yAxis = 0;
-            }
-
-            //console.log("addSeries chart:"+dp+" name:"+name);
-            var serie = {
+            var serie = $.extend({
                 chart: dp,
                 id: "chart_"+dp.toString(),
                 name: name,
-                type: type,
-                step: step,
-                yAxis: yAxis,
-                marker: marker,
-                valueDecimals: valueDecimals,
                 valueSuffix: $("<div/>").html(unit).text(),
                 visible: visible,
-                pointWidth: 16,
                 data: chart.logData[dp],
                 events: {
                     click: function () {
@@ -696,34 +567,22 @@
                     }
                 }
 
-            };
-            if (grouping) {
-                serie.dataGrouping = grouping;
-            } else {
-                //
+            }, config.standard);
+
+            if (config.dpTypes[dptype]) {
+                serie = $.extend(serie, config.dpTypes[dptype]);
             }
 
-            if (chart.queryParams["grouping"] == "false") {
-                //console.log("disable grouping");
-                serie.dataGrouping = {enabled:false};
+            if (chart.queryParams["percentaxis"] != "true") {
+                serie.yAxis = 0;
             }
+
             if (chart.queryParams["area"] == "true") {
                 if (serie.type == "spline") {
                     serie.type = "areaspline";
                 }
             }
 
-            // Serienoptionen
-            /*
-            var tmp = dp.split(".");
-            if (chart.config.series[tmp[1]]) {
-                serie = $.extend(true, serie, chart.config.series[tmp[1]]);
-            }
-
-            if (chart.config.series[dp]) {
-                serie = $.extend(true, serie, chart.config.series[dp]);
-            }
-*/
             if (!navserie) {
                 chart.chartOptions.series.push(serie);
             } else {
@@ -736,12 +595,10 @@
                         break;
 
                 }
-                //console.log(serie);
                 chart.chartOptions.navigator.series = serie;
             }
         },
-        init: function () {
-
+        connect: function () {
             $(".progressbar").progressbar({
                 value: 0
             }).height(16);
@@ -753,6 +610,15 @@
                 chart.progressDone += 1;
                 chart.progress();
             });
+
+            chart.socket.emit('getSettings', function (ccuIoSettings) {
+                if (ccuIoSettings.version < chart.requiredCcuIoVersion) {
+                    alert("Warning: requires CCU.IO version "+chart.requiredCcuIoVersion+" - found CCU.IO version "+ccuIoSettings.version+" - please update CCU.IO.");
+                }
+                chart.init();
+            });
+        },
+        init: function () {
 
 
 

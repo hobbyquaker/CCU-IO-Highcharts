@@ -1,6 +1,6 @@
 # CCU.IO-Highcharts
 
-aktuelle Version: 0.9.12
+aktuelle Version: 1.0.0
 
 Visualisierung der CCU.IO Logs mittels Highcharts/Highstock
 
@@ -16,6 +16,14 @@ Visualisierung der CCU.IO Logs mittels Highcharts/Highstock
   * Perfomance-Optimierung
 
 ## Changelog
+
+### 1.0.0
+  * (Hobbyquaker) Konfiguration der Serien-Eigenschaften in config.js
+  * (Hobbyquaker) Menü-Seite setzt Parameter nun in Hash (somit können Menüseiten mit bestimmten Settings als Bookmark gespeichert werden)
+  * (Hobbyquaker) Bugfix - überflüssiges Laden von Logfiles wenn Datenpunkt im via period definierten Zeitraum nicht vorhanden war
+  * (Hobbyquaker) Code aufgeräumt, Javascript von Menüseite in eigene Datei ausgelagert
+  * (Hobbyquaker) Update auf Highstock 1.3.7
+  * (Hobbyquaker) Highstock, jQuery, jQueryUI und Multiselect wird nun aus dem ccu.io lib-Verzeichnis geladen
 
 ### 0.9.12
   * (Hobbyquaker) Chart-Type spline für ACTUAL_TEMPERATURE
