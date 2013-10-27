@@ -6,7 +6,9 @@ Visualisierung der CCU.IO Logs mittels Highcharts/Highstock
 
 ## Installation / Dokumentation
 
-  * [Dieses Zip-File](https://github.com/hobbyquaker/CCU-IO-Highcharts/archive/master.zip) entpacken und den Ordner charts in das www-Verzeichnis von ccu.io entpacken
+Vorraussetzung ist eine funktionierende [CCU.IO](https://github.com/hobbyquaker/ccu.io) Installation
+
+  * [Dieses Zip-File](https://github.com/hobbyquaker/CCU-IO-Highcharts/archive/master.zip) entpacken und den Ordner charts in das www-Verzeichnis von CCU.IO kopieren
   * http://ccu-io-server:8080/charts/menu.html aufrufen
 
 In der Datei config.js können Optionen für einzelne Datenpunkte vorgenommen werden.
