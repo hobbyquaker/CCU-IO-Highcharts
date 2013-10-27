@@ -24,6 +24,7 @@ Visualisierung der CCU.IO Logs mittels Highcharts/Highstock
   * (Hobbyquaker) Code aufgeräumt, Javascript von Menüseite in eigene Datei ausgelagert
   * (Hobbyquaker) Update auf Highstock 1.3.7
   * (Hobbyquaker) Highstock, jQuery, jQueryUI und Multiselect wird nun aus dem ccu.io lib-Verzeichnis geladen
+  * (Hobbyquaker) CCU.IO Version Prüfung und Alert eingebaut
 
 ### 0.9.12
   * (Hobbyquaker) Chart-Type spline für ACTUAL_TEMPERATURE
