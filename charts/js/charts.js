@@ -604,7 +604,7 @@
             }).height(16);
 
             // Verbindung zu CCU.IO herstellen.
-            chart.socket = io.connect( $(location).attr('protocol') + '//' +  $(location).attr('host'));
+            chart.socket = io.connect( $(location).attr('protocol') + '//' +  $(location).attr('host') + '?key=' + socketSession);
 
             chart.socket.on('connect', function() {
                 chart.progressDone += 1;
