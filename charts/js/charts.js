@@ -18,7 +18,7 @@
 (function ($) {
 
     chart = {
-        version: "1.0.0",
+        version: "1.0.1",
         requiredCcuIoVersion: "0.9.62",
         socket: {},
         regaObjects: {},
@@ -217,9 +217,10 @@
 
                         var dpObj = chart.regaObjects[this.series.options.chart];
                         var tmpName;
-                        if (dpObj.Parent) {
+                        if (dpObj && dpObj.Parent) {
                             tmpName = chart.regaObjects[dpObj.Parent].Name+"<br/>"+chart.regaObjects[this.series.options.chart].Name;
                         } else {
+
                             tmpName = chart.regaObjects[this.series.options.chart].Name;
                         }
 
@@ -540,11 +541,15 @@
                 dptype = tmpType[2];
                 name = chart.regaObjects[chId].Name + " " + dptype + unit;
             } else {
-                name = regaObj.Name;
+                if (regaObj) {
+                    name = regaObj.Name;
+                } else {
+                    name = dp;
+                }
                 dptype = undefined;
             }
 
-            if (chart.regaObjects[dp].ValueUnit) {
+            if (chart.regaObjects[dp]) {
                 unit = chart.regaObjects[dp].ValueUnit;
                 if (unit == "100%") { unit = "%"; }
             }

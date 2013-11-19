@@ -1,6 +1,6 @@
 # CCU.IO-Highcharts
 
-aktuelle Version: 1.0.0
+aktuelle Version: 1.0.1
 
 Visualisierung der CCU.IO Logs mittels Highcharts/Highstock
 
@@ -15,6 +15,10 @@ In der Datei config.js können Optionen für einzelne Datenpunkte vorgenommen we
 
 
 ## Changelog
+
+### 1.0.1
+  * (Bluefox) Support for Socket.IO Authentication
+  * (Hobbyquaker) Bugfixes
 
 ### 1.0.0
   * (Hobbyquaker) Konfiguration der Serien-Eigenschaften in config.js
@@ -53,7 +57,7 @@ In der Datei config.js können Optionen für einzelne Datenpunkte vorgenommen we
 
 ## Copyright, Lizenz, Bedingungen
 
-Copyright (c) 2013 [hobbyquaker](https://github.com/hobbyquaker)
+Copyright (c) 2013 [hobbyquaker](http://hobbyquaker.github.io)
 
 Lizenz: [CC BY-NC 3.0](http://creativecommons.org/licenses/by-nc/3.0/de/)
 
