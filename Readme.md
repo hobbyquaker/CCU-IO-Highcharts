@@ -1,20 +1,23 @@
 # CCU.IO-Highcharts
 
-aktuelle Version: 1.0.1
+aktuelle Version: 1.0.2
 
 Visualisierung der CCU.IO Logs mittels Highcharts/Highstock
 
-## Installation / Dokumentation
+## Dokumentation
 
-Vorraussetzung ist eine funktionierende [CCU.IO](https://github.com/hobbyquaker/ccu.io) Installation
+http://ccu.io/addons.html#highcharts
 
-  * [Dieses Zip-File](https://github.com/hobbyquaker/CCU-IO-Highcharts/archive/master.zip) entpacken und den Ordner charts in das www-Verzeichnis von CCU.IO kopieren
-  * http://ccu-io-server:ccu-io-port/charts/menu.html aufrufen
 
-In der Datei config.js können Optionen für einzelne Datenpunkte vorgenommen werden.
+## Roadmap/Todo
+
 
 
 ## Changelog
+
+### 1.0.2
+  * (Hobbyquaker) Bugfix: deaktivieren der Aggregation (Parameter "grouping") hat nicht funktioniert
+  * (Hobbyquaker) Umstellung Verzeichnisstruktur
 
 ### 1.0.1
   * (Bluefox) Support for Socket.IO Authentication
