@@ -582,6 +582,10 @@
                 serie.yAxis = 0;
             }
 
+            if (chart.queryParams["grouping"] == "false") {
+                serie.dataGrouping = {enabled:false};
+            }
+
             if (chart.queryParams["area"] == "true") {
                 if (serie.type == "spline") {
                     serie.type = "areaspline";
