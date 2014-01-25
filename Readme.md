@@ -1,6 +1,6 @@
 # CCU.IO-Highcharts
 
-aktuelle Version: 1.0.2
+aktuelle Version: 1.0.3
 
 Visualisierung der CCU.IO Logs mittels Highcharts/Highstock
 
@@ -14,6 +14,10 @@ http://ccu.io/addons.html#highcharts
 
 
 ## Changelog
+
+### 1.0.3
+  * (Hobbyquaker) Update auf Highstock 1.3.9, erfordert CCU.IO >= 1.0.15
+  * (Hobbyquaker) Relative Pfade in menu.html
 
 ### 1.0.2
   * (Hobbyquaker) Bugfix: deaktivieren der Aggregation (Parameter "grouping") hat nicht funktioniert
@@ -60,7 +64,7 @@ http://ccu.io/addons.html#highcharts
 
 ## Copyright, Lizenz, Bedingungen
 
-Copyright (c) 2013 [hobbyquaker](http://hobbyquaker.github.io)
+Copyright (c) 2013-2014 [hobbyquaker](http://hobbyquaker.github.io)
 
 Lizenz: [CC BY-NC 3.0](http://creativecommons.org/licenses/by-nc/3.0/de/)
 
@@ -74,3 +78,5 @@ Wobei gilt:
 Verzichtserklärung - Jede der vorgenannten Bedingungen kann aufgehoben werden, sofern Sie die ausdrückliche Einwilligung des Rechteinhabers dazu erhalten.
 
 Die Veröffentlichung dieser Software erfolgt in der Hoffnung, daß sie Ihnen von Nutzen sein wird, aber OHNE IRGENDEINE GARANTIE, sogar ohne die implizite Garantie der MARKTREIFE oder der VERWENDBARKEIT FÜR EINEN BESTIMMTEN ZWECK. Die Nutzung dieser Software erfolgt auf eigenes Risiko!
+
+Die verwendete Highcharts/Highstock Bibliothek erlaubt keine kommerzielle Nutzung! http://shop.highsoft.com/highstock.html

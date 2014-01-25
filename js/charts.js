@@ -1,11 +1,14 @@
 /**
- *      CUxD-Highcharts
+ *      CCU.IO-Highcharts
  *
  *      visualisiert CCU.IO Logs mittels Highcharts
  *
- *      Copyright (c) 2013 hobbyquaker https://github.com/hobbyquaker
+ *      Copyright (c) 2013-2014 hobbyquaker https://github.com/hobbyquaker
  *
  *      Lizenz: CC BY-NC 3.0 http://creativecommons.org/licenses/by-nc/3.0/de/
+ *
+ *      Die verwendete Highcharts/Highstock Bibliothek erlaubt keine kommerzielle Nutzung!
+ *      http://shop.highsoft.com/highstock.html
  *
  *      Die Veröffentlichung dieser Software erfolgt in der Hoffnung, daß sie Ihnen von Nutzen sein wird, aber
  *      OHNE IRGENDEINE GARANTIE, sogar ohne die implizite Garantie der MARKTREIFE oder der VERWENDBARKEIT FÜR EINEN
@@ -18,8 +21,8 @@
 (function ($) {
 
     chart = {
-        version: "1.0.2",
-        requiredCcuIoVersion: "0.9.62",
+        version: "1.0.3",
+        requiredCcuIoVersion: "1.0.15",
         socket: {},
         regaObjects: {},
         regaIndex: {},
