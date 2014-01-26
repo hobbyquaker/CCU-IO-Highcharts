@@ -11,18 +11,6 @@
     <script src="../socket.io/socket.io.js"></script>
     <script src="../lib/js/highstock/highstock-1.3.9.js"></script>
     <script src="../lib/js/highstock/exporting-1.3.9.js"></script>
-    <script src="js/config.js"></script>
-    <script src="js/charts.js"></script>
-    <script type="text/javascript">
-        jQuery(document).ready(function () {
-            // If no datapoint selected, go to menu.html
-            if (window.location.href.indexOf('?') == -1 || window.location.href.indexOf('dp=') == -1) {
-                window.location.href = "/charts/menu.html";
-            } else {
-                chart.connect();
-            }
-        });
-    </script>
 </head>
 <body>
 <div id="title">
@@ -44,5 +32,80 @@
 
     <span class="ajax-loader-progress"><div class="progressbar"></div></span>
 </div>
+<div id="edit_dialog" style="display: none" title="Datenreihen Eigenschaften">
+    <table>
+        <input type="hidden" id="series_index"/>
+        <input type="hidden" id="series_dp"/>
+        <h4 id="seriesName"></h3>
+        <tr>
+            <td>Farbe</td>
+            <td>
+                <input type="text" id="color"/>
+            </td>
+        </tr>
+        <tr>
+            <td>Linienstärke</td>
+            <td>
+                <input type="number" id="lineWidth"/>
+            </td>
+        </tr>
+        <tr>
+            <td>Markierung</td>
+            <td>
+                <select class="edit-select" id="marker">
+                    <option value="false">nicht anzeigen</option>
+                    <option value="true">anzeigen</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td>Linien-Typ</td>
+            <td>
+                <select class="edit-select" id="lineType">
+                    <option value="line">line</option>
+                    <option value="spline">spline</option>
+                    <option value="area">area</option>
+                    <option value="areaspline">areaspline</option>
+                    <option value="scatter">scatter</option>
+                    <option value="bar">bar</option>
+                    <option value="column">column</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td>Stufen</td>
+            <td>
+                <select class="edit-select" id="step">
+                    <option value="null">deaktiviert</option>
+                    <option value="left">links</option>
+                    <option value="center">mittig</option>
+                    <option value="right">rechts</option>
+                </select>
+            </td>
+        </tr>
+        <tr>
+            <td>Aggregation</td>
+            <td>
+                <select class="edit-select" id="grouping">
+                    <option value="false">deaktiviert</option>
+                    <option value="average">durchschnitt</option>
+                    <option value="high">maximum</option>
+                </select>
+            </td>
+        </tr>
+    </table>
+</div>
+<script src="js/config.js"></script>
+<script src="js/charts.js"></script>
+<script type="text/javascript">
+    jQuery(document).ready(function () {
+        // If no datapoint selected, go to menu.html
+        if (window.location.href.indexOf('?') == -1 || window.location.href.indexOf('dp=') == -1) {
+            window.location.href = "/charts/menu.html";
+        } else {
+            chart.connect();
+        }
+    });
+</script>
 </body>
 </html>

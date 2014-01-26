@@ -111,3 +111,7 @@ table#stats {
     background: url(/charts/img/progress.png);
     display: none;
 }
+
+.edit-select {
+    width: 135px;
+}

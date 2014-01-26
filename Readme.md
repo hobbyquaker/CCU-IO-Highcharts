@@ -11,9 +11,16 @@ http://ccu.io/addons.html#highcharts
 
 ## Roadmap/Todo
 
+* Navigator editierbar
+* Mehr Eigenschaften editierbar
+* Edit-Modus deaktivierbar über URL Param
+* Hover-Popup deaktivierbar über URL Param
 
 
 ## Changelog
+
+### 1.1.0
+  * (Hobbyquaker) Neu: Edit Modus - Eigenschaften (Linien-Typ, -Farbe, -Stärke, Aggregation, ...) nun im Chart via Klick auf Datenreihe editierbar
 
 ### 1.0.3
   * (Hobbyquaker) Update auf Highstock 1.3.9, erfordert CCU.IO >= 1.0.15

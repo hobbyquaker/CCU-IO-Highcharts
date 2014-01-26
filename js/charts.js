@@ -21,7 +21,7 @@
 (function ($) {
 
     chart = {
-        version: "1.0.3",
+        version: "1.1.0",
         requiredCcuIoVersion: "1.0.15",
         socket: {},
         regaObjects: {},
@@ -30,6 +30,8 @@
         logData: {},
         chart: undefined,
         chartOptions: {},
+        customOptions: {},
+        seriesIds: [],
         queryParams: getUrlVars(),
         start: "0000-00-00T00:00:00",
         done: false,
@@ -228,7 +230,7 @@
                         }
 
                         return '<b>'+tmpName + '</b><br>' + // return stored text
-                            date + ' - <b>' + val + unit + "</b>";
+                            date + ': <b>' + val + unit + "</b>";
 
                     }
                 },
@@ -557,7 +559,7 @@
                 if (unit == "100%") { unit = "%"; }
             }
 
-            var serie = $.extend({
+            var serie = $.extend(true, {
                 chart: dp,
                 id: "chart_"+dp.toString(),
                 name: name,
@@ -565,8 +567,38 @@
                 visible: visible,
                 data: chart.logData[dp],
                 events: {
-                    click: function () {
+                    click: function (e) {
+                        var id = e.currentTarget.options.chart;
+                        var obj = chart.chart.series[chart.seriesIds.indexOf(id)];
 
+                        $("#series_index").val(chart.seriesIds.indexOf(id));
+                        $("#series_dp").val(id);
+
+                        $("#color").val(obj.color);
+
+                        $("#lineWidth").val(obj.options.lineWidth);
+
+                        $("#grouping option").removeAttr("selected");
+                        if (obj.options.dataGrouping.enabled === false) {
+                            $("#grouping option[value='false']").attr("selected", true);
+                        } else {
+                            $("#grouping option[value='"+obj.options.dataGrouping.approximation+"']").attr("selected", true);
+                        }
+
+                        if (obj.options.step === null) {
+                            $("#step option[value='null']").attr("selected", true);
+                        } else {
+                            $("#step option[value='"+obj.options.step+"']").attr("selected", true);
+                        }
+
+                        $("#lineType option").removeAttr("selected");
+                        $("#lineType option[value='"+obj.options.type+"']").attr("selected", true);
+
+                        $("#marker option").removeAttr("selected");
+                        $("#marker option[value='"+obj.options.marker.enabled+"']").attr("selected", true);
+
+                        $("#seriesName").html(name+ " ("+id+")");
+                        $("#edit_dialog").dialog("open");
 
                     },
                     legendItemClick: function () {
@@ -596,11 +628,13 @@
             }
 
             if (!navserie) {
+                serie = $.extend(true, serie, chart.customOptions[dp]);
                 chart.chartOptions.series.push(serie);
+                chart.seriesIds.push(dp);
             } else {
                 switch (serie.type) {
                     case "line":
-                        serie.type = "arealine";
+                        serie.type = "area";
                         break;
                     case "spline":
                         serie.type = "areaspline";
@@ -608,6 +642,7 @@
 
                 }
                 chart.chartOptions.navigator.series = serie;
+
             }
         },
         connect: function () {
@@ -664,9 +699,14 @@
             $("#chart_skip").click(function () {
 
             });
-            chart.initHighcharts();
 
-            chart.loadData();
+            chart.socket.emit("readFile", "highcharts-options.json", function (data) {
+                if (data) {
+                    chart.customOptions = data;
+                }
+                chart.initHighcharts();
+                chart.loadData();
+            });
 
         },
         progress: function () {
@@ -691,5 +731,59 @@
         }
         return vars;
     }
+
+    $("#edit_dialog").dialog({
+        width: 420,
+        autoOpen: false,
+        modal: true,
+        buttons: [
+            {
+                text: "Speichern",
+                click: function () {
+                    var index = $("#series_index").val();
+                    var dp = $("#series_dp").val();
+                    chart.chart.series[index].options.type = $("#lineType option:selected").val();
+                    chart.chart.series[index].options.marker.enabled = ($("#marker option:selected").val() == "true" ? true : false);
+                    chart.chart.series[index].options.dataGrouping.enabled = ($("#grouping option:selected").val() == "false" ? false : true);
+                    chart.chart.series[index].options.dataGrouping.approximation = ($("#grouping option:selected").val() == "false" ? undefined : $("#grouping option:selected").val());
+                    chart.chart.series[index].options.step = ($("#step option:selected").val() == "false" ? undefined : $("#step option:selected").val());
+                    chart.chart.series[index].options.color = $("#color").val();
+                    chart.chart.series[index].options.states.hover.lineWidth = $("#lineWidth").val();
+                    chart.chart.series[index].options.lineWidth = $("#lineWidth").val();
+
+                    chart.chart.series[index].update(chart.chart.series[index].options);
+
+                    if (!chart.customOptions[dp]) {
+                        chart.customOptions[dp] = {};
+                    }
+
+                    chart.customOptions[dp].type = chart.chart.series[index].options.type;
+                    chart.customOptions[dp].marker = {enabled: chart.chart.series[index].options.marker.enabled};
+                    chart.customOptions[dp].dataGrouping = {
+                        enabled: chart.chart.series[index].options.dataGrouping.enabled,
+                        approximation: chart.chart.series[index].options.dataGrouping.approximation
+                    };
+                    chart.customOptions[dp].step = chart.chart.series[index].options.step;
+                    chart.customOptions[dp].color = chart.chart.series[index].options.color;
+                    chart.customOptions[dp].lineWidth = chart.chart.series[index].options.lineWidth;
+                    chart.customOptions[dp].states = {
+                        hover: {
+                            lineWidth: chart.chart.series[index].options.states.hover.lineWidth
+                        }
+                    };
+
+                    chart.socket.emit("writeFile", "highcharts-options.json", chart.customOptions);
+
+                }
+            },
+            {
+                text: "Abbrechen",
+                click: function () {
+                    $("#edit_dialog").dialog("close");
+                }
+            }
+
+        ]
+    });
 
 })(jQuery);

@@ -46,11 +46,25 @@ var config = {
         STATE: {
             yAxis: 1,
             valueDecimals: 0,
-            factor: 100
+            factor: 100,
+            dataGrouping: {
+                enabled: false
+            }
         },
         SETPOINT: {
             marker: {
                 enabled: true
+            },
+            dataGrouping: {
+                enabled: false
+            }
+        },
+        SET_TEMPERATURE: {
+            marker: {
+                enabled: true
+            },
+            dataGrouping: {
+                enabled: false
             }
         },
         BRIGHTNESS: {
