@@ -776,17 +776,19 @@
 
                     $("#edit_dialog").dialog("close");
                 }
-            },
+            },/*
             {
                 text: "Zurücksetzen",
                 click: function () {
                     if (chart.customOptions[dp]) {
+                        var dp = $("#series_dp").val();
                         delete chart.customOptions[dp];
                         chart.socket.emit("writeFile", "highcharts-options.json", chart.customOptions);
                     }
+                    // Todo Default Values wiederherstellen und Chart updaten
                     $("#edit_dialog").dialog("close");
                 }
-            },
+            },*/
             {
                 text: "Abbrechen",
                 click: function () {

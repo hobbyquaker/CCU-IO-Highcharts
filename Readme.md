@@ -11,10 +11,11 @@ http://ccu.io/addons.html#highcharts
 
 ## Roadmap/Todo
 
-* Navigator editierbar
-* Mehr Eigenschaften editierbar
-* Edit-Modus deaktivierbar über URL Param
-* Hover-Popup deaktivierbar über URL Param
+* Edit-Modus: Navigator editierbar
+* Edit-Modus: Mehr Eigenschaften
+* Edit-Modus: Zurücksetzen auf default Settings
+* Edit-Modus: deaktivierbar über URL Param
+* Hover-Popup: deaktivierbar über URL Param
 
 
 ## Changelog
