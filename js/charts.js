@@ -597,7 +597,7 @@
                         $("#marker option").removeAttr("selected");
                         $("#marker option[value='"+obj.options.marker.enabled+"']").attr("selected", true);
 
-                        $("#seriesName").html(name+ " ("+id+")");
+                        $("#seriesName").html(name+ "<br/>"+chart.regaObjects[id].Name+" ("+id+")");
                         $("#edit_dialog").dialog("open");
 
                     },
@@ -774,6 +774,17 @@
 
                     chart.socket.emit("writeFile", "highcharts-options.json", chart.customOptions);
 
+                    $("#edit_dialog").dialog("close");
+                }
+            },
+            {
+                text: "Zurücksetzen",
+                click: function () {
+                    if (chart.customOptions[dp]) {
+                        delete chart.customOptions[dp];
+                        chart.socket.emit("writeFile", "highcharts-options.json", chart.customOptions);
+                    }
+                    $("#edit_dialog").dialog("close");
                 }
             },
             {
