@@ -11,6 +11,7 @@ http://ccu.io/addons.html#highcharts
 
 ## Roadmap/Todo
 
+* Edit-Modus: Colorpicker für Farbauswahl
 * Edit-Modus: Navigator editierbar
 * Edit-Modus: Mehr Eigenschaften
 * Edit-Modus: Zurücksetzen auf default Settings
