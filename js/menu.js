@@ -57,7 +57,7 @@
         $(".link").attr("href", link );
 
         // Verbindung zu CCU.IO herstellen.
-        chart.socket = io.connect( $(location).attr('protocol') + '//' +  $(location).attr('host'));
+        chart.socket = io.connect( $(location).attr('protocol') + '//' +  $(location).attr('host') + '?key=' + socketSession);
 
         chart.socket.emit('getSettings', function (ccuIoSettings) {
             if (ccuIoSettings.version < chart.requiredCcuIoVersion) {
