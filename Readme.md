@@ -11,6 +11,8 @@ http://ccu.io/addons.html#highcharts
 
 ## Roadmap/Todo
 
+* Achsenbeschriftung: Über URL Param deaktivieren
+* Achsenbeschriftung: Unit aller zugeordneten Datenreihen anzeigen, Farbe fixen
 * Edit-Modus: Colorpicker für Farbauswahl
 * Edit-Modus: Navigator editierbar
 * Edit-Modus: Mehr Eigenschaften
