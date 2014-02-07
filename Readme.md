@@ -20,6 +20,9 @@ http://ccu.io/addons.html#highcharts
 
 
 ## Changelog
+### 1.1.1
+  * (Hobbyquaker) Achsenbeschriftung. Noch unfertig, wird noch besser ;-)
+  * (Bluefox) Fixed Auth
 
 ### 1.1.0
   * (Hobbyquaker) Neu: Edit Modus - Eigenschaften (Linien-Typ, -Farbe, -Stärke, Aggregation, ...) nun im Chart via Klick auf Datenreihe editierbar

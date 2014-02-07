@@ -21,7 +21,7 @@
 (function ($) {
 
     chart = {
-        version: "1.1.0",
+        version: "1.1.1",
         requiredCcuIoVersion: "1.0.15",
         socket: {},
         regaObjects: {},
@@ -40,6 +40,31 @@
         progressTodo: 100,
         renderChart: function () {
             chart.chart = new Highcharts.StockChart(chart.chartOptions);
+            // Add yAxis Labels
+
+            for (var index = 0, l = chart.chart.series.length; index < l; index++) {
+
+                var name = chart.chart.series[index].options.name;
+                var axis = chart.chart.series[index].options.yAxis;
+
+                if (axis == "navigator-y-axis") continue;
+
+                console.log(name+" yAxis="+axis);
+                var unit = name.split(" ");
+                unit = unit[unit.length-1];
+
+                chart.chart.yAxis[axis].update({
+                    title: {
+                        text: unit,
+                        style: {
+                            color: chart.chart.series[index].options.color
+                        }
+                    }
+                });
+
+            }
+            chart.chart.redraw();
+
             chart.ready = true;
         },
         initHighcharts: function () {
@@ -237,30 +262,32 @@
                 series: []
             };
 
-            if (chart.queryParams["percentaxis"] == "true") {
+            //if (chart.queryParams["secondaxis"] == "true") {
                 chart.chartOptions.yAxis.push({
                     title: {
                         text: ""
                     },
                     labels: {
-                        formatter: function() {
-                            return this.value +'%';
-                        }
-                    },
-                    opposite: true
-                });
-                chart.chartOptions.yAxis.push({
-                    title: {
-                        text: ""
-                    },
-                    labels: {
+                        useHTML: true,
                         formatter: function() {
                             return this.value;
                         }
                     },
                     opposite: true
-                });
-            }
+                });/*
+                chart.chartOptions.yAxis.push({
+                    title: {
+                        text: ""
+                    },
+                    labels: {
+                        useHTML: true,
+                        formatter: function() {
+                            return this.value;
+                        }
+                    },
+                    opposite: true
+                });*/
+            //}
 
             if (chart.queryParams["scrollbar"] == "false") {
                 chart.chartOptions.scrollbar = {
@@ -474,14 +501,14 @@
             return ts;
         },
         loadData: function () {
-            $("#loader_output2").prepend("<span class='ajax-loader'></span> lade ReGaHSS-Objekte");
+            $("#loader_output2").prepend("<span class='ajax-loader'></span> lade Objekte");
             chart.socket.emit('getObjects', function(obj) {
                 chart.progressDone += 1;
                 chart.progress();
 
                 chart.regaObjects = obj;
                 chart.ajaxDone();
-                $("#loader_output2").prepend("<span class='ajax-loader'></span> lade ReGaHSS-Index");
+                $("#loader_output2").prepend("<span class='ajax-loader'></span> lade Index");
                 // Weiter gehts mit dem Laden des Index
                 chart.socket.emit('getIndex', function(obj) {
                     chart.progressDone += 1;
@@ -571,6 +598,8 @@
                         var id = e.currentTarget.options.chart;
                         var obj = chart.chart.series[chart.seriesIds.indexOf(id)];
 
+                        console.log(obj);
+
                         $("#series_index").val(chart.seriesIds.indexOf(id));
                         $("#series_dp").val(id);
 
@@ -584,6 +613,9 @@
                         } else {
                             $("#grouping option[value='"+obj.options.dataGrouping.approximation+"']").attr("selected", true);
                         }
+
+                        $("#axis option").removeAttr("selected");
+                        $("#axis option[value='"+obj.options.yAxis+"']").attr("selected", true);
 
                         if (obj.options.step === null) {
                             $("#step option[value='null']").attr("selected", true);
@@ -613,10 +645,6 @@
                 serie = $.extend(serie, config.dpTypes[dptype]);
             }
 
-            if (chart.queryParams["percentaxis"] != "true") {
-                serie.yAxis = 0;
-            }
-
             if (chart.queryParams["grouping"] == "false") {
                 serie.dataGrouping = {enabled:false};
             }
@@ -629,6 +657,7 @@
 
             if (!navserie) {
                 serie = $.extend(true, serie, chart.customOptions[dp]);
+
                 chart.chartOptions.series.push(serie);
                 chart.seriesIds.push(dp);
             } else {
@@ -751,6 +780,23 @@
                     chart.chart.series[index].options.states.hover.lineWidth = $("#lineWidth").val();
                     chart.chart.series[index].options.lineWidth = $("#lineWidth").val();
 
+                    var axis = parseInt($("#axis option:selected").val(), 10);
+
+                    chart.chart.series[index].options.yAxis = axis;
+
+                    var name = chart.chart.series[index].options.name;
+                    var unit = name.split(" ");
+                    unit = unit[unit.length-1];
+
+                    chart.chart.yAxis[axis].update({
+                        title: {
+                            text: unit,
+                            style: {
+                                color: chart.chart.series[index].options.color
+                            }
+                        } 
+                    });
+
                     chart.chart.series[index].update(chart.chart.series[index].options);
 
                     if (!chart.customOptions[dp]) {
@@ -771,6 +817,10 @@
                             lineWidth: chart.chart.series[index].options.states.hover.lineWidth
                         }
                     };
+
+                    chart.customOptions[dp].yAxis = parseInt($("#axis option:selected").val(), 10);
+
+
 
                     chart.socket.emit("writeFile", "highcharts-options.json", chart.customOptions);
 
