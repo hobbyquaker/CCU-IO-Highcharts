@@ -21,7 +21,7 @@
 (function ($) {
 
     chart = {
-        version: "1.1.1",
+        version: "1.1.2",
         requiredCcuIoVersion: "1.0.15",
         socket: {},
         regaObjects: {},

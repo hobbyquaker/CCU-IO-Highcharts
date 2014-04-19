@@ -1,6 +1,6 @@
 # CCU.IO-Highcharts
 
-aktuelle Version: 1.1.1
+aktuelle Version: 1.1.2
 
 Visualisierung der CCU.IO Logs mittels Highcharts/Highstock
 
@@ -22,6 +22,9 @@ http://ccu.io/addons.html#highcharts
 
 
 ## Changelog
+### 1.1.2
+  * (Hobbyquaker) menu.html: Fehler abgefangen beim erzeugen der Datenpunktlisten
+
 ### 1.1.1
   * (Hobbyquaker) Achsenbeschriftung. Noch unfertig, wird noch besser ;-)
   * (Bluefox) Fixed Auth

@@ -3,7 +3,7 @@
  *
  *      visualisiert CCU.IO Logs mittels Highcharts
  *
- *      Copyright (c) 2013 hobbyquaker https://github.com/hobbyquaker
+ *      Copyright (c) 2013-2014 hobbyquaker https://github.com/hobbyquaker
  *
  *      Lizenz: CC BY-NC 3.0 http://creativecommons.org/licenses/by-nc/3.0/de/
  *
@@ -77,13 +77,20 @@
 
                     for (var i = 0; i < chart.regaIndex.VARDP.length; i++) {
                         var id = chart.regaIndex.VARDP[i];
+                        if (!chart.regaObjects[id]) {
+                            continue;
+                        }
                         $("#dp").append("<option value='"+id+"'>VARDP "+chart.regaObjects[id].Name+"</option>");
                         $("#navserie").append("<option value='"+id+"'>VARDP "+chart.regaObjects[id].Name+"</option>");
                     }
 
                     for (var i = 0; i < chart.regaIndex.HSSDP.length; i++) {
                         var id = chart.regaIndex.HSSDP[i];
-                        var chId = chart.regaObjects[id].Parent;
+
+                        if (!chart.regaObjects[id]) {
+                            continue;
+                        }
+
 
                         var unit = "";
                         if (chart.regaObjects[id].ValueUnit) {
@@ -92,8 +99,15 @@
                         var tmp = chart.regaObjects[id].Name.split(".");
                         var dpName = tmp[2];
 
-                        $("#dp").append("<option value='"+id+"'>HSSDP "+chart.regaObjects[chId].Name+" "+dpName+unit+"</option>");
-                        $("#navserie").append("<option value='"+id+"'>HSSDP "+chart.regaObjects[chId].Name+" "+dpName+unit+"</option>");
+                        var chId = chart.regaObjects[id].Parent;
+                        var chName = "";
+
+                        if (chId && chart.regaObjects[chId]) {
+                            chName = chart.regaObjects[chId].Name || "";
+                        }
+
+                        $("#dp").append("<option value='"+id+"'>HSSDP "+chName+" "+dpName+unit+"</option>");
+                        $("#navserie").append("<option value='"+id+"'>HSSDP "+chName+" "+dpName+unit+"</option>");
                     }
 
                     if (params.dp) {

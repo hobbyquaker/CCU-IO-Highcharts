@@ -3,7 +3,7 @@
  *
  *      visualisiert CUxD Geräte-Logs mittels Highcharts
  *
- *      Copyright (c) 2013 hobbyquaker https://github.com/hobbyquaker
+ *      Copyright (c) 2013-2014 hobbyquaker https://github.com/hobbyquaker
  *
  *      Lizenz: CC BY-NC 3.0 http://creativecommons.org/licenses/by-nc/3.0/de/
  *
