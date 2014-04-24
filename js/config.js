@@ -135,6 +135,11 @@ var config = {
             step: null,
             valueDecimals: 3
         },
+        "MEAN15MINUTES": {
+            type: "spline",
+            step: null,
+            valueDecimals: 3
+        },
         "METER": {
             type: "column",
             dataGrouping: {
