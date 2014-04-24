@@ -1,6 +1,6 @@
 # CCU.IO-Highcharts
 
-aktuelle Version: 1.1.2
+aktuelle Version: 1.1.3
 
 Visualisierung der CCU.IO Logs mittels Highcharts/Highstock
 
@@ -22,6 +22,10 @@ http://ccu.io/addons.html#highcharts
 
 
 ## Changelog
+
+### 1.1.3
+  * (Hobbyquaker) neuer Datenpunkttyp MEAN15MINUTES
+
 ### 1.1.2
   * (Hobbyquaker) menu.html: Fehler abgefangen beim erzeugen der Datenpunktlisten
 
