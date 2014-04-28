@@ -552,7 +552,7 @@
                     type: 'get',
                     async: false,
                     dataType: 'text',
-                    cache: false,
+                    cache: true,
                     success: function (data) {
                         chart.ajaxDone();
                         chart.progressDone += 1;
