@@ -21,9 +21,9 @@
 (function ($) {
 
     chart = {
-        version: "1.1.2",
+        version: "1.1.1",
         requiredCcuIoVersion: "1.0.15",
-        socket: {},
+        socket: null,
         regaObjects: {},
         regaIndex: {},
         oldLogs: [],
@@ -502,48 +502,72 @@
         },
         loadData: function () {
             $("#loader_output2").prepend("<span class='ajax-loader'></span> lade Objekte");
-            chart.socket.emit('getObjects', function(obj) {
-                chart.progressDone += 1;
-                chart.progress();
-
-                chart.regaObjects = obj;
-                chart.ajaxDone();
-                $("#loader_output2").prepend("<span class='ajax-loader'></span> lade Index");
-                // Weiter gehts mit dem Laden des Index
-                chart.socket.emit('getIndex', function(obj) {
+            if (chart.socket) {
+                chart.socket.emit('getObjects', function(obj) {
                     chart.progressDone += 1;
                     chart.progress();
 
-                    chart.regaIndex = obj;
-
+                    chart.regaObjects = obj;
                     chart.ajaxDone();
-                    $("#loader_output2").prepend("<span class='ajax-loader'></span> frage vorhandene Logs ab");
+                    $("#loader_output2").prepend("<span class='ajax-loader'></span> lade Index");
+                    // Weiter gehts mit dem Laden des Index
+                    chart.socket.emit('getIndex', function(obj) {
+                        chart.progressDone += 1;
+                        chart.progress();
 
-                    // alte Logfiles finden
-                    chart.socket.emit('readdir', "log", function (obj) {
+                        chart.regaIndex = obj;
+
+                        chart.ajaxDone();
+                        $("#loader_output2").prepend("<span class='ajax-loader'></span> frage vorhandene Logs ab");
+
+                        // alte Logfiles finden
+                        chart.socket.emit('readdir', "log", function (obj) {
+                            chart.ajaxDone();
+                            chart.progressDone += 1;
+                            chart.progress();
+
+                            var files = [];
+                            if (!chart.queryParams["period"] || parseFloat(chart.queryParams["period"]) == 0) {
+                                chart.progressTodo = obj.length + 1;
+                            }
+                            for (var i = 0; i < obj.length; i++) {
+                                if (obj[i].match(/devices\-variables\.log\./)) {
+                                    files.push(obj[i]);
+                                }
+                            }
+                            files.sort();
+                            chart.oldLogs = files;
+
+                            chart.loadLog("devices-variables.log", chart.loadOldLogs);
+
+                        })
+
+                    });
+                });
+            } else {
+                // local
+                // Load from ../datastore/local-data.json the demo views
+                $.ajax({
+                    url: '../datastore/local-data.json',
+                    type: 'get',
+                    async: false,
+                    dataType: 'text',
+                    cache: true,
+                    success: function (data) {
                         chart.ajaxDone();
                         chart.progressDone += 1;
                         chart.progress();
 
-                        var files = [];
-                        if (!chart.queryParams["period"] || parseFloat(chart.queryParams["period"]) == 0) {
-                            chart.progressTodo = obj.length + 1;
-                        }
-                        for (var i = 0; i < obj.length; i++) {
-                            if (obj[i].match(/devices\-variables\.log\./)) {
-                                files.push(obj[i]);
-                            }
-                        }
-                        files.sort();
-                        chart.oldLogs = files;
-
+                        var _localData = $.parseJSON(data);
+                        chart.regaIndex   = _localData.metaIndex;
+                        chart.regaObjects = _localData.metaObjects;
                         chart.loadLog("devices-variables.log", chart.loadOldLogs);
-
-                    })
-
+                    },
+                    error: function (state) {
+                        console.log(state.statusText);
+                    }
                 });
-            });
-
+            }
         },
         ajaxDone: function () {
             $(".ajax-loader").removeClass("ajax-loader").addClass("ajax-check");
@@ -679,27 +703,32 @@
                 value: 0
             }).height(16);
 
-            // Verbindung zu CCU.IO herstellen.
-            chart.socket = io.connect( $(location).attr('protocol') + '//' +  $(location).attr('host') + '?key=' + socketSession);
+            if (typeof io !== 'undefined') {
+                // Verbindung zu CCU.IO herstellen.
+                chart.socket = io.connect( $(location).attr('protocol') + '//' +  $(location).attr('host') + '?key=' + socketSession);
 
-            chart.socket.on('connect', function() {
-                chart.progressDone += 1;
-                chart.progress();
-            });
+                chart.socket.on('connect', function() {
+                    chart.progressDone += 1;
+                    chart.progress();
+                });
 
-            chart.socket.emit('getSettings', function (ccuIoSettings) {
-                if (ccuIoSettings.version < chart.requiredCcuIoVersion) {
-                    alert("Warning: requires CCU.IO version "+chart.requiredCcuIoVersion+" - found CCU.IO version "+ccuIoSettings.version+" - please update CCU.IO.");
-                }
+                chart.socket.emit('getSettings', function (ccuIoSettings) {
+                    if (ccuIoSettings.version < chart.requiredCcuIoVersion) {
+                        alert("Warning: requires CCU.IO version "+chart.requiredCcuIoVersion+" - found CCU.IO version "+ccuIoSettings.version+" - please update CCU.IO.");
+                    }
+                    chart.init();
+                });
+            } else {
+                // Offline mode
                 chart.init();
-            });
+            }
         },
         init: function () {
 
 
 
             // Von CCU.IO empfangene Events verarbeiten
-            if (chart.queryParams["export"] != "false") {
+            if (chart.socket && chart.queryParams["export"] != "false") {
 
                 chart.socket.on('event', function(obj) {
                     if (chart.ready) {
@@ -729,13 +758,18 @@
 
             });
 
-            chart.socket.emit("readFile", "highcharts-options.json", function (data) {
-                if (data) {
-                    chart.customOptions = data;
-                }
+            if (chart.socket) {
+                chart.socket.emit("readFile", "highcharts-options.json", function (data) {
+                    if (data) {
+                        chart.customOptions = data;
+                    }
+                    chart.initHighcharts();
+                    chart.loadData();
+                });
+            } else {
                 chart.initHighcharts();
                 chart.loadData();
-            });
+            }
 
         },
         progress: function () {
@@ -821,8 +855,11 @@
                     chart.customOptions[dp].yAxis = parseInt($("#axis option:selected").val(), 10);
 
 
-
-                    chart.socket.emit("writeFile", "highcharts-options.json", chart.customOptions);
+                    if (chart.socket) {
+                        chart.socket.emit("writeFile", "highcharts-options.json", chart.customOptions);
+                    } else {
+                        window.alert('Settings did not saved!');
+                    }
 
                     $("#edit_dialog").dialog("close");
                 }
