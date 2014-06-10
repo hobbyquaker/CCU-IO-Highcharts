@@ -707,17 +707,18 @@
                         // addPoint (Object options, [Boolean redraw], [Boolean shift], [Mixed animation])
 
                         var id = obj[0].toString();
-                        var ts = (new Date(obj[2]).getTime());
-                        var val = obj[1];
-                        if (val == true || val == "true") { val = 1; }
-                        if (val == false || val == "false") { val = 0; }
-                        val = parseFloat(val);
-                        if (isNaN(val)) { val = 0; }
-
                         var uchart = chart.chart.get("chart_"+id);
 
                         if (uchart) {
-                            //console.log("addPoint id="+id+" ts="+ts+" val="+val);
+                            var tmp = obj[2].split(" ");
+                            var dateArr = tmp[0].split("-");
+                            var timeArr = tmp[1].split(":");
+                            var ts = (new Date(dateArr[0], dateArr[1]-1, dateArr[2], timeArr[0], timeArr[1], timeArr[2])).getTime();
+                            var val = obj[1];
+                            if (val == true || val == "true") { val = 1; }
+                            if (val == false || val == "false") { val = 0; }
+                            val = parseFloat(val);
+                            if (isNaN(val)) { val = 0; }
                             uchart.addPoint([ts,val]);
                         }
                     }
