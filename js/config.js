@@ -140,6 +140,11 @@ var config = {
             step: null,
             valueDecimals: 3
         },
+        "AVG15": {
+            type: "spline",
+            step: null,
+            valueDecimals: 3
+        },
         "METER": {
             type: "column",
             dataGrouping: {

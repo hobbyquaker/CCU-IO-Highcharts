@@ -24,7 +24,8 @@ http://ccu.io/addons.html#highcharts
 ## Changelog
 
 ### 1.1.3
-  * (Hobbyquaker) neuer Datenpunkttyp MEAN15MINUTES
+  * (Hobbyquaker) Fix LiveUpdate (sollte Problem der verschwindenden Linien beheben)
+  * (Hobbyquaker) neuer Datenpunkttyp MEAN15MINUTES und AVG15
 
 ### 1.1.2
   * (Hobbyquaker) menu.html: Fehler abgefangen beim erzeugen der Datenpunktlisten
