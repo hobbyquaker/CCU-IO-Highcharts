@@ -26,6 +26,7 @@ http://ccu.io/addons.html#highcharts
 ### 1.1.3
   * (Hobbyquaker) Fix LiveUpdate (sollte Problem der verschwindenden Linien beheben)
   * (Hobbyquaker) neuer Datenpunkttyp MEAN15MINUTES und AVG15
+  * (Hobbyquaker) Update auf Highstock 1.3.10
 
 ### 1.1.2
   * (Hobbyquaker) menu.html: Fehler abgefangen beim erzeugen der Datenpunktlisten
