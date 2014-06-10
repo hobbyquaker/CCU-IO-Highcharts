@@ -699,7 +699,7 @@
 
 
             // Von CCU.IO empfangene Events verarbeiten
-            if (chart.queryParams["export"] != "false") {
+            if (chart.queryParams["live"] != "false") {
 
                 chart.socket.on('event', function(obj) {
                     if (chart.ready) {
