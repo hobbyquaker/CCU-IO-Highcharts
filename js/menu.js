@@ -29,7 +29,7 @@
         $(".link").attr("href", startLink);
 
         $(".chart-version").html(chart.version);
-        $("#credits").html("<a target='_blank' href='https://github.com/hobbyquaker/CCU.IO-Highcharts'>CCU.IO-Highcharts</a> " + chart.version + " copyright (c) 2013 <a target='_blank' href='http://hobbyquaker.github.io/'>hobbyquaker</a>  - Lizenz: <a target='_blank' href='http://creativecommons.org/licenses/by-nc/3.0/de/'>CC BY-NC 3.0 DE</a>  - Verwendet <a target='_blank' href='http://www.highcharts.com'>Highstock</a> - kommerzielle Nutzung untersagt!").
+        $("#credits").html("<a target='_blank' href='https://github.com/hobbyquaker/CCU.IO-Highcharts'>CCU.IO-Highcharts</a> " + chart.version + " copyright (c) 2013 - 2014<a target='_blank' href='http://hobbyquaker.github.io/'>hobbyquaker</a>  - " + chart.translate("License") + ": <a target='_blank' href='http://creativecommons.org/licenses/by-nc/3.0/" + chart.lang + "/'>CC BY-NC 3.0</a>  - " + chart.translate("Used") + " <a target='_blank' href='http://www.highcharts.com'>Highstock</a> - " + chart.translate("only for noncommercial purposes!")).
             attr("href", "https://github.com/hobbyquaker/CCU-IO-Highcharts");
 
         var link = window.location.href.replace(/menu\.html/, '?');
@@ -124,26 +124,28 @@
                     $("#dp").multiselect({
                         minWidth: 462,
                         height: 260,
-                        noneSelectedText: "Datenreihen: keine ausgewählt",
-                        selectedText: "Datenreihen: # ausgewählt",
+                        noneSelectedText: chart.translate("Series: none selected"),
+                        selectedText: chart.translate("Series: # selected"),
 
-                        checkAllText: "alle auswählen",
-                        uncheckAllText: "Auswahl aufheben"
+                        checkAllText: chart.translate("select all"),
+                        uncheckAllText: chart.translate("clear selection")
                     }).multiselectfilter({
-                            placeholder: ""
-                        });
+                        placeholder: "",
+                        label: chart.translate("Filter:")
+                    });
 
                     $("#navserie").multiselect({
                         minWidth: 462,
                         height: 260,
-                        noneSelectedText: "Navigator: -",
+                        noneSelectedText: chart.translate("Navigator: -"),
                         selectedText: function(numChecked, numTotal, checkedItems){
-                            return "Navigator: "+checkedItems[0].title;
+                            return chart.translate("Navigator:") + " " + checkedItems[0].title;
                         },
                         multiple: false
                     }).multiselectfilter({
-                            placeholder: ""
-                        });
+                        placeholder: "",
+                        label: chart.translate("Filter:")
+                    });
 
                     $("#loader_small").hide();
 

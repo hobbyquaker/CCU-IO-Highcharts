@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
 <head>
-    <title>CCU.IO-Highcharts Menü</title>
+    <title>CCU.IO-Highcharts Menu</title>
     <link rel="stylesheet" type="text/css" href="../lib/css/themes/jquery-ui/overcast/jquery-ui.css"/>
     <link rel="stylesheet" type="text/css" href="css/menu.css"/>
     <link rel="stylesheet" type="text/css" href="../lib/css/jquery.multiselect-1.13.css"/>
@@ -10,8 +10,7 @@
     <script src="../auth/auth.js"></script>
     <script src="../socket.io/socket.io.js"></script>
     <script src="../lib/js/jquery-ui-1.10.3.full.min.js"></script>
-    <script src="../lib/js/jquery.multiselect-1.13.js"></script>
-    <script src="../lib/js/jquery.multiselect.filter-1.5pre.js"></script>
+    <script type="text/javascript" src="../lang/lang.js"></script>
     <script src="js/charts.js"></script>
     <script src="js/menu.js"></script>
 </head>
@@ -30,67 +29,67 @@
 
     <div class="head">
         <select id="dp" multiple="multiple" name="dp"></select>
-        <a style="margin-left:90px;" class="link" target="_blank" href="?">Charts anzeigen</a>
-        <h4>Navigator</h4>
+        <a style="margin-left:90px;" class="link translate" target="_blank" href="?">Show charts</a>
+        <h4 class="translate">Navigator</h4>
         <select id="navserie" multiple="multiple" name="navserie"></select>
         <span style="display:inline-block; width: 4px;"></span>
         <select class="simple" multiple="multiple" id="navigator">
-            <option value="" selected="selected">anzeigen</option>
-            <option value="false">nicht anzeigen</option>
+            <option value="" selected="selected" class="translate">show</option>
+            <option value="false" class="translate">hide</option>
         </select>
     </div>
 
     <div class="block">
-        <h4>von CCU laden</h4>
+        <h4 class="translate">Load period</h4>
         <select class="simple" multiple="multiple" id="period" name="period">
-            <option value="1">1 Stunde</option>
-            <option value="2">2 Stunden</option>
-            <option value="6">6 Stunden</option>
-            <option value="12">12 Stunden</option>
-            <option value="24">1 Tag</option>
-            <option value="72">3 Tage</option>
-            <option value="120">5 Tage</option>
-            <option value="168">1 Woche</option>
-            <option value="336">2 Wochen</option>
-            <option value="720">1 Monat</option>
-            <option value="2160">3 Monate</option>
-            <option value="4320">6 Monate</option>
-            <option value="8760">1 Jahr</option>
-            <option value="" selected="selected">unbegrenzt</option>
+            <option value="1" class="translate">1 Hour</option>
+            <option value="2" class="translate">2 Hours</option>
+            <option value="6" class="translate">6 Hours</option>
+            <option value="12" class="translate">12 Hours</option>
+            <option value="24" class="translate">1 Day</option>
+            <option value="72" class="translate">3 Days</option>
+            <option value="120" class="translate">5 Days</option>
+            <option value="168" class="translate">1 Week</option>
+            <option value="336" class="translate">2 Weeks</option>
+            <option value="720" class="translate">1 Month</option>
+            <option value="2160" class="translate">3 Months</option>
+            <option value="4320" class="translate">6 Months</option>
+            <option value="8760" class="translate">1 Year</option>
+            <option value="" selected="selected" class="translate">All</option>
         </select>
-        <h4>Zoomstufe</h4>
+        <h4 class="translate">Zoom level</h4>
         <select class="simple" multiple="multiple" id="range" name="range">
-            <option value="1">1 Stunde</option>
-            <option value="2">2 Stunden</option>
-            <option value="6">6 Stunden</option>
-            <option value="12">12 Stunden</option>
-            <option value="24">1 Tag</option>
-            <option value="72">3 Tage</option>
-            <option value="120">5 Tage</option>
-            <option value="168">1 Woche</option>
-            <option value="336">2 Wochen</option>
-            <option value="720">1 Monat</option>
-            <option value="2160">3 Monate</option>
-            <option value="4320">6 Monate</option>
-            <option value="8760">1 Jahr</option>
-            <option value="" selected="selected">automatisch</option>
+            <option value="1" class="translate">1 Hour</option>
+            <option value="2" class="translate">2 Hours</option>
+            <option value="6" class="translate">6 Hours</option>
+            <option value="12" class="translate">12 Hours</option>
+            <option value="24" class="translate">1 Day</option>
+            <option value="72" class="translate">3 Days</option>
+            <option value="120" class="translate">5 Days</option>
+            <option value="168" class="translate">1 Week</option>
+            <option value="336" class="translate">2 Weeks</option>
+            <option value="720" class="translate">1 Month</option>
+            <option value="2160" class="translate">3 Months</option>
+            <option value="4320" class="translate">6 Months</option>
+            <option value="8760" class="translate">1 Year</option>
+            <option value="" selected="selected" class="translate">Auto</option>
         </select>
 
-        <h4>Aggregation</h4>
+        <h4 class="translate">Aggregation</h4>
         <select class="simple" multiple="multiple" id="grouping">
-            <option value="" selected="selected">dynamisch</option>
-            <option value="false">deaktiviert</option>
+            <option value="" selected="selected" class="translate">dynamic</option>
+            <option value="false" class="translate">deactivated</option>
         </select>
 
-        <h4>Live-Updates</h4>
+        <h4 class="translate">Live-Updates</h4>
         <select class="simple" multiple="multiple" id="live">
-            <option value="" selected="selected">aktiviert</option>
-            <option value="false">deaktiviert</option>
+            <option value="" selected="selected" class="translate">activated</option>
+            <option value="false" class="translate">deactivated</option>
         </select>
 
     </div>
     <div class="block">
-        <h4>Theme</h4>
+        <h4 class="translate">Theme</h4>
         <select class="simple" multiple="multiple" id="theme">
             <option value="" selected="selected">-</option>
             <option value="grid">grid</option>
@@ -100,23 +99,23 @@
             <option value="gray">gray</option>
         </select>
 
-        <h4>Lade-Anzeige</h4>
+        <h4 class="translate">Show loading</h4>
         <select class="simple" multiple="multiple" id="loader">
-            <option value="" selected="selected">anzeigen</option>
-            <option value="false">nicht anzeigen</option>
+            <option value="" selected="selected" class="translate">show</option>
+            <option value="false" class="translate">hide</option>
         </select>
 
-        <h4>Legende</h4>
+        <h4 class="translate">Legend</h4>
         <select class="simple" multiple="multiple" id="legend">
-            <option value="" selected="selected">Links</option>
-            <option value="inline">im Chart</option>
-            <option value="false">nicht anzeigen</option>
+            <option value="" selected="selected" class="translate">left</option>
+            <option value="inline" class="translate">inside</option>
+            <option value="false" class="translate">hide</option>
         </select>
 
-        <h4>Export-Button</h4>
+        <h4 class="translate">Export-Button</h4>
         <select class="simple" multiple="multiple" id="exporting">
-            <option value="" selected="selected">nicht anzeigen</option>
-            <option value="true">anzeigen</option>
+            <option value="" selected="selected" class="translate">hide</option>
+            <option value="true" class="translate">show</option>
         </select>
 
     </div>
@@ -130,16 +129,16 @@
         </select>
         -->
 
-        <h4>Scrollbar</h4>
+        <h4 class="translate">Scrollbar</h4>
         <select class="simple" multiple="multiple" id="scrollbar">
-            <option value="" selected="selected">anzeigen</option>
-            <option value="false">nicht anzeigen</option>
+            <option value="" selected="selected" class="translate">show</option>
+            <option value="false" class="translate">hide</option>
         </select>
 
-        <h4>Zoomen</h4>
+        <h4 class="translate">Zoom</h4>
         <select class="simple" multiple="multiple" id="zoom">
-            <option value="" selected="selected">aktiviert</option>
-            <option value="false">deaktiviert</option>
+            <option value="" selected="selected" class="translate">activated</option>
+            <option value="false" class="translate">deactivated</option>
         </select>
 
     </div>
@@ -150,5 +149,10 @@
 
 </div>
 
+<script type="text/javascript">
+    chart.translateAll();
+</script>
+<script src="../lib/js/jquery.multiselect-1.13.js"></script>
+<script src="../lib/js/jquery.multiselect.filter-1.5pre.js"></script>
 </body>
 </html>

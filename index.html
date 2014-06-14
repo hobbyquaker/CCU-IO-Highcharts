@@ -13,6 +13,7 @@
     <script src="js/highstock-1.3.10.js"></script>
     <!--<script src="../lib/js/highstock/exporting-1.3.9.js"></script>-->
     <script src="js/exporting-1.3.10.js"></script>
+    <script type="text/javascript" src="../lang/lang.js"></script>
 </head>
 <body>
 <div id="title">
@@ -24,7 +25,7 @@
     <div style="padding-top:10px" id="loader_output">
         <div style="width: 240px" class="progressbar"></div>
         <span style="display:inline-block; height: 24px;">
-            <input type="button" class="loader-buttons" value="nachfolgende Logs nicht mehr laden und Charts anzeigen" id="cuxchart_skip" style="display:none;"/>
+            <input type="button" class="loader-buttons translateV" value="not load" id="cuxchart_skip" style="display:none;"/>
         </span>
         <br/>
         <div id="loader_output2"></div>
@@ -34,73 +35,73 @@
 
     <span class="ajax-loader-progress"><div class="progressbar"></div></span>
 </div>
-<div id="edit_dialog" style="display: none" title="Datenreihen Eigenschaften">
+<div id="edit_dialog" style="display: none" class="translateT" title="Series settings">
     <table>
         <input type="hidden" id="series_index"/>
         <input type="hidden" id="series_dp"/>
-        <h4 id="seriesName"></h3>
+        <h4 id="seriesName"></h4>
         <tr>
-            <td>Farbe</td>
+            <td class="translate">Color</td>
             <td>
                 <input type="text" id="color"/>
             </td>
         </tr>
         <tr>
-            <td>Linienstärke</td>
+            <td class="translate">Line width</td>
             <td>
                 <input type="number" id="lineWidth"/>
             </td>
         </tr>
         <tr>
-            <td>Markierung</td>
+            <td class="translate">Selection</td>
             <td>
                 <select class="edit-select" id="marker">
-                    <option value="false">nicht anzeigen</option>
-                    <option value="true">anzeigen</option>
+                    <option value="false" class="translate">hide</option>
+                    <option value="true" class="translate">show</option>
                 </select>
             </td>
         </tr>
         <tr>
-            <td>Linien-Typ</td>
+            <td class="translate">Line type</td>
             <td>
                 <select class="edit-select" id="lineType">
-                    <option value="line">line</option>
-                    <option value="spline">spline</option>
-                    <option value="area">area</option>
-                    <option value="areaspline">areaspline</option>
-                    <option value="scatter">scatter</option>
-                    <option value="bar">bar</option>
-                    <option value="column">column</option>
+                    <option value="line" class="translate">line</option>
+                    <option value="spline" class="translate">spline</option>
+                    <option value="area" class="translate">area</option>
+                    <option value="areaspline" class="translate">areaspline</option>
+                    <option value="scatter" class="translate">scatter</option>
+                    <option value="bar" class="translate">bar</option>
+                    <option value="column" class="translate">column</option>
                 </select>
             </td>
         </tr>
         <tr>
-            <td>Stufen</td>
+            <td class="translate">Steps</td>
             <td>
                 <select class="edit-select" id="step">
-                    <option value="null">deaktiviert</option>
-                    <option value="left">links</option>
-                    <option value="center">mittig</option>
-                    <option value="right">rechts</option>
+                    <option value="null" class="translate">deactivated</option>
+                    <option value="left" class="translate">left</option>
+                    <option value="center" class="translate">middle</option>
+                    <option value="right" class="translate">right</option>
                 </select>
             </td>
         </tr>
         <tr>
-            <td>Aggregation</td>
+            <td class="translate">Aggregation</td>
             <td>
                 <select class="edit-select" id="grouping">
-                    <option value="false">deaktiviert</option>
-                    <option value="average">durchschnitt</option>
-                    <option value="high">maximum</option>
+                    <option value="false" class="translate">deactivated</option>
+                    <option value="average" class="translate">average</option>
+                    <option value="high" class="translate">maximum</option>
                 </select>
             </td>
         </tr>
             <tr>
-                <td>Y-Achse</td>
+                <td class="translate">Y-axis</td>
                 <td>
                     <select class="edit-select" id="axis">
-                        <option value="0">Links</option>
-                        <option value="1">Rechts</option>
+                        <option value="0" class="translate">left</option>
+                        <option value="1" class="translate">right</option>
                     </select>
                 </td>
             </tr>
@@ -109,6 +110,7 @@
 <script src="js/config.js"></script>
 <script src="js/charts.js"></script>
 <script type="text/javascript">
+    chart.translateAll();
     jQuery(document).ready(function () {
         // If no datapoint selected, go to menu.html
         if (window.location.href.indexOf('?') == -1 || window.location.href.indexOf('dp=') == -1) {
