@@ -1,6 +1,6 @@
 # CCU.IO-Highcharts
 
-aktuelle Version: 1.1.3
+aktuelle Version: 1.1.4
 
 Visualisierung der CCU.IO Logs mittels Highcharts/Highstock
 
@@ -22,6 +22,9 @@ http://ccu.io/addons.html#highcharts
 
 
 ## Changelog
+
+### 1.1.4
+  * (Bluefox) translate to english and russian
 
 ### 1.1.3
   * (Hobbyquaker) Fix LiveUpdate (sollte Problem der verschwindenden Linien beheben)
