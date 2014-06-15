@@ -21,7 +21,7 @@
 (function ($) {
 
     chart = {
-        version: "1.1.3",
+        version: "1.1.4",
         requiredCcuIoVersion: "1.0.15",
         socket: {},
         regaObjects: {},
@@ -30,6 +30,21 @@
         logData: {},
         lang: (typeof ccuIoLang != 'undefined') ? ccuIoLang : 'de',
         words: null,
+        months: {
+            "en": ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+            "de": ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+            "ru": ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
+        },
+        shortMonths: {
+            "en": ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            "de": ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
+            "ru": ['Янв', 'Фев', 'Март', 'Апр', 'Май', 'Июня', 'Июля', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек']
+        },
+        weekDays: {
+            "en": ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+            "de": ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
+            "ru": ['Воскресение', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота']
+        },
         chart: undefined,
         chartOptions: {},
         customOptions: {},
@@ -94,14 +109,12 @@
 
             Highcharts.setOptions({
                 lang: {
-                    months: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
-                        'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
-                    shortMonths: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun',
-                        'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
-                    weekdays: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
-                    rangeSelectorFrom: 'von',
-                    rangeSelectorTo: 'bis',
-                    rangeSelectorZoom: 'Bereich'
+                    months:            chart.months[chart.lang],
+                    shortMonths:       chart.shortMonths[chart.lang],
+                    weekdays:          chart.weekDays[chart.lang],
+                    rangeSelectorFrom: chart.translate("from"),
+                    rangeSelectorTo:   chart.translate("to"),
+                    rangeSelectorZoom: chart.translate("Period")
                 },
                 global: {
                     useUTC: false
@@ -143,7 +156,7 @@
                 };
                 credits = {
                     enabled: true,
-                    text: "CCU.IO-Highcharts " + chart.version + " copyright (c) 2013 hobbyquaker https://github.com/hobbyquaker - Lizenz: CC BY-NC 3.0 DE http://creativecommons.org/licenses/by-nc/3.0/de/ - Verwendet Highstock http://www.highcharts.com - Kommerzielle Nutzung untersagt",
+                    text: "CCU.IO-Highcharts " + chart.version + " copyright (c) 2013-2014 hobbyquaker https://github.com/hobbyquaker - " + chart.translate("License") + ": CC BY-NC 3.0 http://creativecommons.org/licenses/by-nc/3.0/" + chart.lang + "/ - " + chart.translate("Used") + " Highstock http://www.highcharts.com - " + chart.translate("only for noncommercial purposes!"),
                     href: "https://github.com/hobbyquaker/CCU-IO-Highcharts",
                     position: { align: "left", x: 12 }
                 };
@@ -214,7 +227,7 @@
                         var date;
                         //console.log(this);
                         if (this.series.hasGroupedData) {
-                            date = "<i>Aggregiert: ";
+                            date = "<i>" + chart.translate("Aggregated: ");
                             if (this.series.pointRange == 0) {
                                 pointRange = this.point.series.closestPointRange;
                                 // console.log(Highcharts.dateFormat("%e. %b %Y %H:%M:%S", this.series.processedXData[0]));
@@ -228,17 +241,17 @@
                                 endDate = "24:00";
                             }
                             if (pointRange < 3600000) {
-                                date += (pointRange / 60000) + " Minuten</i><br/>";
+                                date += (pointRange / 60000) + " "  + chart.translate("Minutes") + "</i><br/>";
                                 date += Highcharts.dateFormat("%e. %b %Y %H:%M", this.x);
                                 date += "-";
                                 date += endDate;
                             } else if (pointRange < 86400000) {
-                                date += (pointRange / 3600000) + " Stunde" + (pointRange > 3600000 ? "n" : "") + "</i><br/>";
+                                date += (pointRange / 3600000) + " " + (pointRange > 3600000 ? chart.translate("Hours") : chart.translate("Hour")) + "</i><br/>";
                                 date += Highcharts.dateFormat("%e. %b %Y %H:%M", this.x);
                                 date += "-";
                                 date += endDate;
                             } else {
-                                date += (pointRange / 86400000) + " Tag" + (pointRange > 86400000 ? "e" : "") + "</i><br/>";
+                                date += (pointRange / 86400000) + " " + (pointRange > 86400000 ? chart.translate("Days") : chart.translate("Day")) + "</i><br/>";
                                 date += Highcharts.dateFormat("%e. %b %Y", this.x);
                             }
                         } else {
@@ -341,32 +354,32 @@
                         {
                             type: 'hour',
                             count: 1,
-                            text: '1h'
+                            text: chart.translate('1h')
                         },
                         {
                             type: 'hour',
                             count: 6,
-                            text: '6h'
+                            text: chart.translate('6h')
                         },
                         {
                             type: 'day',
                             count: 1,
-                            text: '1T'
+                            text: chart.translate('1D')
                         },
                         {
                             type: 'week',
                             count: 1,
-                            text: '1W'
+                            text: chart.translate('1W')
                         },
                         {
                             type: 'month',
                             count: 1,
-                            text: '1M'
+                            text: chart.translate('1M')
                         },
                         {
                             type: 'year',
                             count: 1,
-                            text: '1Y'
+                            text: chart.translate('1Y')
                         }
                     ],
                     selected: selectedRange,
@@ -379,7 +392,7 @@
 
         },
         loadLog: function (log, callback) {
-            $("#loader_output2").prepend("<span class='ajax-loader'></span> lade " + log + " ");
+            $("#loader_output2").prepend("<span class='ajax-loader'></span> " + chart.translate("load") + " " + log + " ");
 
             if (log.match(/log$/)) {
                 log = log + "?" + (new Date().getTime());
@@ -392,7 +405,7 @@
                     chart.progressDone += 1;
                     chart.progress();
                     chart.ajaxDone();
-                    $("#loader_output2").prepend("<span class='ajax-loader'></span> verarbeite " + log + " ");
+                    $("#loader_output2").prepend("<span class='ajax-loader'></span> " + chart.translate("process") + " " + log + " ");
                     var dataArr = data.split("\n");
                     var l = dataArr.length;
 
@@ -400,8 +413,8 @@
                         var DPs = chart.queryParams["dp"].split(",");
                     } else {
                         $(".ajax-loader").removeClass("ajax-loader").addClass("ajax-fail");
-                        $("#loader_output2").prepend("<b>Fehler: </b>Keine Datenpunkte ausgewählt!<br/>");
-                        $.error("Keine Datenpunkte ausgewählt!");
+                        $("#loader_output2").prepend(chart.translate("<b>Error: </b>No datapoints selected!<br/>"));
+                        $.error(chart.translate("No datapoints selected!"));
 
                     }
                     var tmpArr = [];
@@ -521,14 +534,14 @@
             return ts;
         },
         loadData: function () {
-            $("#loader_output2").prepend("<span class='ajax-loader'></span> lade Objekte");
+            $("#loader_output2").prepend("<span class='ajax-loader'></span> " + chart.translate("load objects"));
             chart.socket.emit('getObjects', function (obj) {
                 chart.progressDone += 1;
                 chart.progress();
 
                 chart.regaObjects = obj;
                 chart.ajaxDone();
-                $("#loader_output2").prepend("<span class='ajax-loader'></span> lade Index");
+                $("#loader_output2").prepend("<span class='ajax-loader'></span> " + chart.translate("load indexes"));
                 // Weiter gehts mit dem Laden des Index
                 chart.socket.emit('getIndex', function (obj) {
                     chart.progressDone += 1;
@@ -537,7 +550,7 @@
                     chart.regaIndex = obj;
 
                     chart.ajaxDone();
-                    $("#loader_output2").prepend("<span class='ajax-loader'></span> frage vorhandene Logs ab");
+                    $("#loader_output2").prepend("<span class='ajax-loader'></span> " + chart.translate("query present log files"));
 
                     // alte Logfiles finden
                     chart.socket.emit('readdir', "log", function (obj) {
@@ -909,7 +922,33 @@
                     "Filter:"          : {"en" : "Filter:",      "de": "Filter:",              "ru": "Фильтр:"},
                     "only for noncommercial purposes!" : {"en" : "only for noncommercial purposes!", "de": "kommerzielle Nutzung untersagt!",              "ru": "использование в коммерческих целях запрещено!"},
                     "License"          : {"en" : "License",      "de": "Lizenz",               "ru": "Лицензия"},
-                    "Used"             : {"en" : "Used",         "de": "Verwendet",            "ru": "Используется"}
+                    "Used"             : {"en" : "Used",         "de": "Verwendet",            "ru": "Используется"},
+                    "Aggregated: "     : {"en" : "Aggregated: ", "de": "Aggregiert: ",         "ru": "Группа: "},
+                    "Minutes"          : {"en" : "Minutes",      "de": "Minuten",              "ru": "Минуты"},
+                    "Hour"             : {"en" : "Hour",         "de": "Stunde",               "ru": "Час"},
+                    "Day"              : {"en" : "Day",          "de": "Tag",                  "ru": "День"},
+                    "Hours"            : {"en" : "Hours",        "de": "Stunden",              "ru": "Часов"},
+                    "Days"             : {"en" : "Days",         "de": "Tage",                 "ru": "Дней"},
+                    "from"             : {"en" : "from",         "de": "von",                  "ru": "от"},
+                    "to"               : {"en" : "to",           "de": "bis",                  "ru": "до"},
+                    "Period"           : {"en" : "Period",       "de": "Bereich",              "ru": "Область"},
+                    "1h"               : {"en" : "1h",           "de": "1S",                   "ru": "1ч"},
+                    "6h"               : {"en" : "6h",           "de": "6S",                   "ru": "6ч"},
+                    "1D"               : {"en" : "1D",           "de": "1T",                   "ru": "1д"},
+                    "1W"               : {"en" : "1W",           "de": "1W",                   "ru": "1нед"},
+                    "1M"               : {"en" : "1M",           "de": "1M",                   "ru": "1М"},
+                    "1Y"               : {"en" : "1Y",           "de": "1J",                   "ru": "1Г"},
+                    "load"             : {"en": "load",          "de": "lade",                 "ru": "загружаются"},
+                    "process"          : {"en": "process",       "de": "verarbeite",           "ru": "обрабатывается"},
+                    "load objects"     : {"en": "load objects",  "de": "lade Objekte",         "ru": "загружаются объекты"},
+                    "load indexes"     : {"en": "load indexes",  "de": "lade Index",           "ru": "загружаются индексы"},
+                    "query present log files"    : {"en": "query present log files",  "de": "frage vorhandene Logs ab",   "ru": "запрос списка файлов"},
+                    "No datapoints selected!": {"en" : "No datapoints selected!", "de": "Keine Datenpunkte ausgewählt!", "ru": "Данные не выбраны!"},
+                    "<b>Error: </b>No datapoints selected!<br/>": {
+                        "en" : "<b>Error: </b>No datapoints selected!<br/>",
+                        "de": "<b>Fehler: </b>Keine Datenpunkte ausgewählt!<br/>",
+                        "ru": "<b>Ошибка: </b>Данные не выбраны!<br/>"
+                    }
                 }
 
             }
