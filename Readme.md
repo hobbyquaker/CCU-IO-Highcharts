@@ -23,6 +23,10 @@ http://ccu.io/addons.html#highcharts
 
 ## Changelog
 
+### 1.1.4
+  * (Bluefox) Offline Mode
+  * (Bluefox)
+
 ### 1.1.3
   * (Hobbyquaker) Fix LiveUpdate (sollte Problem der verschwindenden Linien beheben)
   * (Hobbyquaker) neuer Datenpunkttyp MEAN15MINUTES und AVG15
