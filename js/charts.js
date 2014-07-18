@@ -23,11 +23,28 @@
     chart = {
         version: "1.1.4",
         requiredCcuIoVersion: "1.0.15",
-        socket: null,
+        socket: {},
         regaObjects: {},
         regaIndex: {},
         oldLogs: [],
         logData: {},
+        lang: (typeof ccuIoLang != 'undefined') ? ccuIoLang : 'de',
+        words: null,
+        months: {
+            "en": ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+            "de": ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
+            "ru": ['Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь', 'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь']
+        },
+        shortMonths: {
+            "en": ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            "de": ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
+            "ru": ['Янв', 'Фев', 'Март', 'Апр', 'Май', 'Июня', 'Июля', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек']
+        },
+        weekDays: {
+            "en": ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+            "de": ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
+            "ru": ['Воскресение', 'Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота']
+        },
         chart: undefined,
         chartOptions: {},
         customOptions: {},
@@ -49,9 +66,9 @@
 
                 if (axis == "navigator-y-axis") continue;
 
-                console.log(name+" yAxis="+axis);
+                console.log(name + " yAxis=" + axis);
                 var unit = name.split(" ");
-                unit = unit[unit.length-1];
+                unit = unit[unit.length - 1];
 
                 chart.chart.yAxis[axis].update({
                     title: {
@@ -70,9 +87,11 @@
         initHighcharts: function () {
 
             if (chart.queryParams["theme"]) {
-                $.getScript('/lib/js/highstock/themes/' + chart.queryParams.theme+".js", function () {
+                $.getScript('/lib/js/highstock/themes/' + chart.queryParams.theme + ".js", function () {
                     $("body").css("color", Highcharts.theme.legend.itemStyle.color);
-                    if (Highcharts.theme.chart.backgroundColor && Highcharts.theme.chart.backgroundColor.stops) { $("body").css("background-color", Highcharts.theme.chart.backgroundColor.stops[0][1]); }
+                    if (Highcharts.theme.chart.backgroundColor && Highcharts.theme.chart.backgroundColor.stops) {
+                        $("body").css("background-color", Highcharts.theme.chart.backgroundColor.stops[0][1]);
+                    }
                     $(".loader-output").css("border-color", Highcharts.theme.legend.itemStyle.color);
                 });
             }
@@ -90,14 +109,12 @@
 
             Highcharts.setOptions({
                 lang: {
-                    months: ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
-                        'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'],
-                    shortMonths: ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun',
-                        'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'],
-                    weekdays: ['Sonntag', 'Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag'],
-                    rangeSelectorFrom: 'von',
-                    rangeSelectorTo: 'bis',
-                    rangeSelectorZoom: 'Bereich'
+                    months:            chart.months[chart.lang],
+                    shortMonths:       chart.shortMonths[chart.lang],
+                    weekdays:          chart.weekDays[chart.lang],
+                    rangeSelectorFrom: chart.translate("from"),
+                    rangeSelectorTo:   chart.translate("to"),
+                    rangeSelectorZoom: chart.translate("Period")
                 },
                 global: {
                     useUTC: false
@@ -139,7 +156,7 @@
                 };
                 credits = {
                     enabled: true,
-                    text: "CCU.IO-Highcharts " + chart.version + " copyright (c) 2013 hobbyquaker https://github.com/hobbyquaker - Lizenz: CC BY-NC 3.0 DE http://creativecommons.org/licenses/by-nc/3.0/de/ - Verwendet Highstock http://www.highcharts.com - Kommerzielle Nutzung untersagt",
+                    text: "CCU.IO-Highcharts " + chart.version + " copyright (c) 2013-2014 hobbyquaker https://github.com/hobbyquaker - " + chart.translate("License") + ": CC BY-NC 3.0 http://creativecommons.org/licenses/by-nc/3.0/" + chart.lang + "/ - " + chart.translate("Used") + " Highstock http://www.highcharts.com - " + chart.translate("only for noncommercial purposes!"),
                     href: "https://github.com/hobbyquaker/CCU-IO-Highcharts",
                     position: { align: "left", x: 12 }
                 };
@@ -196,41 +213,45 @@
                         year: '%Y'
                     }
                 },
-                yAxis: [{
-                    title: {
-                        text: ''
+                yAxis: [
+                    {
+                        title: {
+                            text: ''
+                        }
                     }
-                }],
+                ],
                 navigator: navigator,
                 tooltip: {
                     shared: false,
-                    formatter: function() {
+                    formatter: function () {
                         var date;
                         //console.log(this);
                         if (this.series.hasGroupedData) {
-                            date = "<i>Aggregiert: ";
+                            date = "<i>" + chart.translate("Aggregated: ");
                             if (this.series.pointRange == 0) {
-                               pointRange = this.point.series.closestPointRange;
-                               // console.log(Highcharts.dateFormat("%e. %b %Y %H:%M:%S", this.series.processedXData[0]));
+                                pointRange = this.point.series.closestPointRange;
+                                // console.log(Highcharts.dateFormat("%e. %b %Y %H:%M:%S", this.series.processedXData[0]));
                                 date += jQuery("<div/>").html("&#x00d8; ").text();
                             } else {
                                 pointRange = this.series.pointRange;
                                 date += jQuery("<div/>").html("&#x0394; ").text();
                             }
                             var endDate = Highcharts.dateFormat("%H:%M", this.x + pointRange);
-                            if (endDate == "00:00") { endDate = "24:00"; }
+                            if (endDate == "00:00") {
+                                endDate = "24:00";
+                            }
                             if (pointRange < 3600000) {
-                                date += (pointRange / 60000) + " Minuten</i><br/>";
+                                date += (pointRange / 60000) + " "  + chart.translate("Minutes") + "</i><br/>";
                                 date += Highcharts.dateFormat("%e. %b %Y %H:%M", this.x);
                                 date += "-";
                                 date += endDate;
                             } else if (pointRange < 86400000) {
-                                date += (pointRange / 3600000) + " Stunde"+(pointRange > 3600000 ? "n" : "")+"</i><br/>";
+                                date += (pointRange / 3600000) + " " + (pointRange > 3600000 ? chart.translate("Hours") : chart.translate("Hour")) + "</i><br/>";
                                 date += Highcharts.dateFormat("%e. %b %Y %H:%M", this.x);
                                 date += "-";
                                 date += endDate;
                             } else {
-                                date += (pointRange / 86400000) + " Tag"+(pointRange > 86400000 ? "e" : "")+"</i><br/>";
+                                date += (pointRange / 86400000) + " " + (pointRange > 86400000 ? chart.translate("Days") : chart.translate("Day")) + "</i><br/>";
                                 date += Highcharts.dateFormat("%e. %b %Y", this.x);
                             }
                         } else {
@@ -248,13 +269,13 @@
                         var dpObj = chart.regaObjects[this.series.options.chart];
                         var tmpName;
                         if (dpObj && dpObj.Parent) {
-                            tmpName = chart.regaObjects[dpObj.Parent].Name+"<br/>"+chart.regaObjects[this.series.options.chart].Name;
+                            tmpName = chart.regaObjects[dpObj.Parent].Name + "<br/>" + chart.regaObjects[this.series.options.chart].Name;
                         } else {
 
                             tmpName = chart.regaObjects[this.series.options.chart].Name;
                         }
 
-                        return '<b>'+tmpName + '</b><br>' + // return stored text
+                        return '<b>' + tmpName + '</b><br>' + // return stored text
                             date + ': <b>' + val + unit + "</b>";
 
                     }
@@ -263,35 +284,36 @@
             };
 
             //if (chart.queryParams["secondaxis"] == "true") {
-                chart.chartOptions.yAxis.push({
-                    title: {
-                        text: ""
-                    },
-                    labels: {
-                        useHTML: true,
-                        formatter: function() {
-                            return this.value;
-                        }
-                    },
-                    opposite: true
-                });/*
-                chart.chartOptions.yAxis.push({
-                    title: {
-                        text: ""
-                    },
-                    labels: {
-                        useHTML: true,
-                        formatter: function() {
-                            return this.value;
-                        }
-                    },
-                    opposite: true
-                });*/
+            chart.chartOptions.yAxis.push({
+                title: {
+                    text: ""
+                },
+                labels: {
+                    useHTML: true,
+                    formatter: function () {
+                        return this.value;
+                    }
+                },
+                opposite: true
+            });
+            /*
+             chart.chartOptions.yAxis.push({
+             title: {
+             text: ""
+             },
+             labels: {
+             useHTML: true,
+             formatter: function() {
+             return this.value;
+             }
+             },
+             opposite: true
+             });*/
             //}
 
             if (chart.queryParams["scrollbar"] == "false") {
                 chart.chartOptions.scrollbar = {
-                    enabled : false
+                    enabled: false
                 };
             }
             if (chart.queryParams["range"]) {
@@ -305,7 +327,7 @@
             } else {
                 var selectedRange;
                 if (chart.queryParams["range"]) {
-                    var range = parseInt(chart.queryParams["range"],10);
+                    var range = parseInt(chart.queryParams["range"], 10);
                     switch (range) {
                         case 1:
                             selectedRange = 0;
@@ -328,33 +350,40 @@
                 }
                 chart.chartOptions.rangeSelector = {
                     inputDateFormat: "%e. %b %Y",
-                    buttons : [{
-                        type : 'hour',
-                        count : 1,
-                        text : '1h'
-                    }, {
-                        type : 'hour',
-                        count : 6,
-                        text : '6h'
-                    }, {
-                        type : 'day',
-                        count : 1,
-                        text : '1T'
-                    }, {
-                        type : 'week',
-                        count : 1,
-                        text : '1W'
-                    }, {
-                        type : 'month',
-                        count : 1,
-                        text : '1M'
-                    }, {
-                        type : 'year',
-                        count : 1,
-                        text : '1Y'
-                    }],
-                    selected : selectedRange,
-                    inputEnabled : true
+                    buttons: [
+                        {
+                            type: 'hour',
+                            count: 1,
+                            text: chart.translate('1h')
+                        },
+                        {
+                            type: 'hour',
+                            count: 6,
+                            text: chart.translate('6h')
+                        },
+                        {
+                            type: 'day',
+                            count: 1,
+                            text: chart.translate('1D')
+                        },
+                        {
+                            type: 'week',
+                            count: 1,
+                            text: chart.translate('1W')
+                        },
+                        {
+                            type: 'month',
+                            count: 1,
+                            text: chart.translate('1M')
+                        },
+                        {
+                            type: 'year',
+                            count: 1,
+                            text: chart.translate('1Y')
+                        }
+                    ],
+                    selected: selectedRange,
+                    inputEnabled: true
                 };
             }
             if (chart.queryParams["zoom"] == "false") {
@@ -363,7 +392,7 @@
 
         },
         loadLog: function (log, callback) {
-            $("#loader_output2").prepend("<span class='ajax-loader'></span> lade "+log+" ");
+            $("#loader_output2").prepend("<span class='ajax-loader'></span> " + chart.translate("load") + " " + log + " ");
 
             if (log.match(/log$/)) {
                 log = log + "?" + (new Date().getTime());
@@ -371,12 +400,12 @@
 
             $.ajax({
                 type: "GET",
-                url: '/log/'+log,
+                url: '/log/' + log,
                 success: function (data) {
                     chart.progressDone += 1;
                     chart.progress();
                     chart.ajaxDone();
-                    $("#loader_output2").prepend("<span class='ajax-loader'></span> verarbeite "+log+" ");
+                    $("#loader_output2").prepend("<span class='ajax-loader'></span> " + chart.translate("process") + " " + log + " ");
                     var dataArr = data.split("\n");
                     var l = dataArr.length;
 
@@ -384,8 +413,8 @@
                         var DPs = chart.queryParams["dp"].split(",");
                     } else {
                         $(".ajax-loader").removeClass("ajax-loader").addClass("ajax-fail");
-                        $("#loader_output2").prepend("<b>Fehler: </b>Keine Datenpunkte ausgewählt!<br/>");
-                        $.error("Keine Datenpunkte ausgewählt!");
+                        $("#loader_output2").prepend(chart.translate("<b>Error: </b>No datapoints selected!<br/>"));
+                        $.error(chart.translate("No datapoints selected!"));
 
                     }
                     var tmpArr = [];
@@ -393,10 +422,12 @@
                         var triple = dataArr[i].split(" ", 3);
 
                         if (DPs.indexOf(triple[1]) !== -1) {
-                            if (!tmpArr[triple[1]]) { tmpArr[triple[1]] = []; }
+                            if (!tmpArr[triple[1]]) {
+                                tmpArr[triple[1]] = [];
+                            }
                             var val = triple[2];
 
-                            if (val === false || val === "false") {
+                            if (val === false || val === "false") {
                                 val = 0;
                             } else if (val === true || val === "true") {
                                 val = 1;
@@ -439,7 +470,7 @@
 
                             if (!isNaN(triple[0])) {
                                 if (triple[0] >= (chart.start)) {
-                                    tmpArr[triple[1]].push([triple[0]*1000, val]);
+                                    tmpArr[triple[1]].push([triple[0] * 1000, val]);
                                 } else {
                                     chart.done = true;
                                 }
@@ -457,7 +488,9 @@
                     }
                     // vorne anfügen
                     for (var tmpDp in tmpArr) {
-                        if (!chart.logData[tmpDp]) { chart.logData[tmpDp] = []; }
+                        if (!chart.logData[tmpDp]) {
+                            chart.logData[tmpDp] = [];
+                        }
                         chart.logData[tmpDp] = tmpArr[tmpDp].concat(chart.logData[tmpDp]);
                     }
 
@@ -584,12 +617,12 @@
             if (regaObj) {
                 var chId = regaObj.Parent;
             } else {
-                console.log("dp "+dp+" not found :-(");
+                console.log("dp " + dp + " not found :-(");
             }
 
             var unit = "";
             if (regaObj && regaObj.ValueUnit) {
-                unit = " ["+$("<div/>").html(chart.regaObjects[dp].ValueUnit).text()+"]";
+                unit = " [" + $("<div/>").html(chart.regaObjects[dp].ValueUnit).text() + "]";
             }
 
             if (chId) {
@@ -607,12 +640,14 @@
 
             if (chart.regaObjects[dp]) {
                 unit = chart.regaObjects[dp].ValueUnit;
-                if (unit == "100%") { unit = "%"; }
+                if (unit == "100%") {
+                    unit = "%";
+                }
             }
 
             var serie = $.extend(true, {
                 chart: dp,
-                id: "chart_"+dp.toString(),
+                id: "chart_" + dp.toString(),
                 name: name,
                 valueSuffix: $("<div/>").html(unit).text(),
                 visible: visible,
@@ -635,25 +670,25 @@
                         if (obj.options.dataGrouping.enabled === false) {
                             $("#grouping option[value='false']").attr("selected", true);
                         } else {
-                            $("#grouping option[value='"+obj.options.dataGrouping.approximation+"']").attr("selected", true);
+                            $("#grouping option[value='" + obj.options.dataGrouping.approximation + "']").attr("selected", true);
                         }
 
                         $("#axis option").removeAttr("selected");
-                        $("#axis option[value='"+obj.options.yAxis+"']").attr("selected", true);
+                        $("#axis option[value='" + obj.options.yAxis + "']").attr("selected", true);
 
                         if (obj.options.step === null) {
                             $("#step option[value='null']").attr("selected", true);
                         } else {
-                            $("#step option[value='"+obj.options.step+"']").attr("selected", true);
+                            $("#step option[value='" + obj.options.step + "']").attr("selected", true);
                         }
 
                         $("#lineType option").removeAttr("selected");
-                        $("#lineType option[value='"+obj.options.type+"']").attr("selected", true);
+                        $("#lineType option[value='" + obj.options.type + "']").attr("selected", true);
 
                         $("#marker option").removeAttr("selected");
-                        $("#marker option[value='"+obj.options.marker.enabled+"']").attr("selected", true);
+                        $("#marker option[value='" + obj.options.marker.enabled + "']").attr("selected", true);
 
-                        $("#seriesName").html(name+ "<br/>"+chart.regaObjects[id].Name+" ("+id+")");
+                        $("#seriesName").html(name + "<br/>" + chart.regaObjects[id].Name + " (" + id + ")");
                         $("#edit_dialog").dialog("open");
 
                     },
@@ -670,7 +705,7 @@
             }
 
             if (chart.queryParams["grouping"] == "false") {
-                serie.dataGrouping = {enabled:false};
+                serie.dataGrouping = {enabled: false};
             }
 
             if (chart.queryParams["area"] == "true") {
@@ -730,25 +765,31 @@
             // Von CCU.IO empfangene Events verarbeiten
             if (chart.queryParams["live"] != "false") {
 
-                chart.socket.on('event', function(obj) {
+                chart.socket.on('event', function (obj) {
                     if (chart.ready) {
                         // id = obj[0], value = obj[1], timestamp = obj[2], acknowledge = obj[3], lastchange = obj[4]
                         // addPoint (Object options, [Boolean redraw], [Boolean shift], [Mixed animation])
 
                         var id = obj[0].toString();
-                        var uchart = chart.chart.get("chart_"+id);
+                        var uchart = chart.chart.get("chart_" + id);
 
                         if (uchart) {
                             var tmp = obj[2].split(" ");
                             var dateArr = tmp[0].split("-");
                             var timeArr = tmp[1].split(":");
-                            var ts = (new Date(dateArr[0], dateArr[1]-1, dateArr[2], timeArr[0], timeArr[1], timeArr[2])).getTime();
+                            var ts = (new Date(dateArr[0], dateArr[1] - 1, dateArr[2], timeArr[0], timeArr[1], timeArr[2])).getTime();
                             var val = obj[1];
-                            if (val == true || val == "true") { val = 1; }
-                            if (val == false || val == "false") { val = 0; }
+                            if (val == true || val == "true") {
+                                val = 1;
+                            }
+                            if (val == false || val == "false") {
+                                val = 0;
+                            }
                             val = parseFloat(val);
-                            if (isNaN(val)) { val = 0; }
-                            uchart.addPoint([ts,val]);
+                            if (isNaN(val)) {
+                                val = 0;
+                            }
+                            uchart.addPoint([ts, val]);
                         }
                     }
                 });
@@ -776,10 +817,191 @@
         progress: function () {
             //console.log("todo="+chart.progressTodo+" done="+chart.progressDone);
             var progressPercent = Math.floor(100 / (chart.progressTodo / chart.progressDone));
-            if (!isFinite(progressPercent)) { progressPercent = 0; }
+            if (!isFinite(progressPercent)) {
+                progressPercent = 0;
+            }
             //console.log("progress "+progressPercent);
-            if (progressPercent > 100) { progressPercent = 100; }
-            $(".progressbar").progressbar("value", progressPercent );
+            if (progressPercent > 100) {
+                progressPercent = 100;
+            }
+            $(".progressbar").progressbar("value", progressPercent);
+        },
+        translateAll: function () {
+            $(".translate").each(function (idx) {
+                var text = $(this).attr('data-lang');
+                if (!text) {
+                    text = $(this).html();
+                    $(this).attr('data-lang', text);
+                }
+
+                var transText = chart.translate(text);
+                if (transText) {
+                    $(this).html(transText);
+                }
+            });
+            // translate <input type="button>
+            $(".translateV").each(function (idx) {
+                var text = $(this).attr('data-lang');
+                if (!text) {
+                    text = $(this).attr('value');
+                    $(this).attr('data-lang', text);
+                }
+
+                var transText = chart.translate(text);
+                if (transText) {
+                    $(this).attr('value', transText);
+                }
+            });
+            $(".translateB").each(function (idx) {
+                //<span class="ui-button-text">Save</span>
+                var text = $(this).attr('data-lang');
+                if (!text) {
+                    text = $(this).html();
+                    text = text.replace('<span class="ui-button-text">', '').replace('</span>', '');
+                    $(this).attr('data-lang', text);
+                }
+                var transText = chart.translate(text);
+                if (transText) {
+                    text = $(this).html();
+                    if (text.indexOf('<span') != -1) {
+                        $(this).html('<span class="ui-button-text">' + transText + '</span>');
+                    } else {
+                        $(this).html(transText);
+                    }
+                }
+            });
+            // translate <div title="text">
+            $(".translateT").each(function (idx) {
+                var text = $(this).attr('data-lang');
+                if (!text) {
+                    text = $(this).attr('title');
+                    $(this).attr('data-lang', text);
+                }
+
+                var transText = chart.translate(text);
+                if (transText) {
+                    $(this).attr('title', transText);
+                }
+            });
+        },
+        translate: function (text, arg) {
+            var lang = chart.lang || 'en';
+            if (chart.words == null) {
+                chart.words = {
+                    "not load": {
+                        "en": "Online",
+                        "de": "nachfolgende Logs nicht mehr laden und Charts anzeigen",
+                        "ru": "Доступно"
+                    },
+                    "Series settings": {"en": "Series settings", "de": "Datenreihen Eigenschaften", "ru": "Доступно"},
+                    "Color":           {"en": "Color",           "de": "Farbe", "ru": "Цвет"},
+                    "Line width":      {"en": "Line width",      "de": "Linienstärke", "ru": "Толщина линии"},
+                    "Selection":       {"en": "Selection",       "de": "Markierung", "ru": "Выделение"},
+                    "hide":            {"en": "hide",            "de": "nicht anzeigen", "ru": "скрыть"},
+                    "show":            {"en": "show",            "de": "anzeigen", "ru": "показать"},
+                    "Line type":       {"en": "Line type",       "de": "Linien-Typ", "ru": "Тип линии"},
+                    "line":            {"en": "line",            "de": "line", "ru": "линия"},
+                    "spline":          {"en": "spline",          "de": "spline", "ru": "сплайн"},
+                    "area":            {"en": "area",            "de": "area", "ru": "область"},
+                    "areaspline":      {"en": "areaspline",      "de": "areaspline", "ru": "область-сплайн"},
+                    "scatter":         {"en": "scatter",         "de": "scatter", "ru": "scatter"},
+                    "bar":             {"en": "bar",             "de": "bar", "ru": "bar"},
+                    "column":          {"en": "column",          "de": "column", "ru": "колонки"},
+                    "Steps":           {"en": "Steps",           "de": "Stufen", "ru": "Ступени"},
+                    "activated":       {"en": "activated",       "de": "aktiviert", "ru": "используется"},
+                    "deactivated":     {"en": "deactivated",     "de": "deaktiviert", "ru": "не используется"},
+                    "left":            {"en": "left",            "de": "links", "ru": "слева"},
+                    "middle":          {"en": "middle",          "de": "mittig", "ru": "в середине"},
+                    "right":           {"en": "right",           "de": "rechts", "ru": "справа"},
+                    "Aggregation":     {"en": "Aggregation",     "de": "Aggregation", "ru": "Группировка"},
+                    "average":         {"en": "average",         "de": "durchschnitt", "ru": "среднее"},
+                    "maximum":         {"en": "maximum",         "de": "maximum", "ru": "максимальное"},
+                    "Y-axis":          {"en": "Y-axis",          "de": "Y-Achse", "ru": "Ось-Y"},
+                    "Show charts":     {"en": "Show charts",     "de": "Charts anzeigen",      "ru": "Показать график"},
+                    "Navigator"        : {"en" : "Navigator",    "de": "Navigator",            "ru": "Навигация"},
+                    "Show top and bottom": {"en" : "Show top and bottom", "de": "Anzeigen oben und unten", "ru": "Показать сверху и снизу"},
+                    "Show bottom"      : {"en" : "Show bottom",  "de": "Anzeigen unten",       "ru": "Показать снизу"},
+                    "Do not show"      : {"en" : "Do not show",  "de": "Nicht anzeigen",       "ru": "Не показывать"},
+                    "Load period"      : {"en" : "Load period",  "de": "Von CCU laden",        "ru": "Загрузить период за"},
+                    "1 Hour"           : {"en" : "1 Hour",       "de": "1 Stunde",             "ru": "1 час"},
+                    "2 Hours"          : {"en" : "2 Hours",      "de": "2 Stunden",            "ru": "2 часа"},
+                    "6 Hours"          : {"en" : "6 Hours",      "de": "6 Stunden",            "ru": "6 часов"},
+                    "12 Hours"         : {"en" : "12 Hours",     "de": "12 Stunden",           "ru": "12 часов"},
+                    "1 Day"            : {"en" : "1 Day",        "de": "1 Tag",                "ru": "1 день"},
+                    "3 Days"           : {"en" : "3 Days",       "de": "3 Tage",               "ru": "2 дня"},
+                    "5 Days"           : {"en" : "5 Days",       "de": "5 Tage",               "ru": "5 дней"},
+                    "1 Week"           : {"en" : "1 Week",       "de": "1 Woche",              "ru": "1 неделю"},
+                    "2 Weeks"          : {"en" : "2 Weeks",      "de": "2 Wochen",             "ru": "2 недели"},
+                    "1 Month"          : {"en" : "1 Month",      "de": "1 Monat",              "ru": "1 месяц"},
+                    "3 Months"         : {"en" : "3 Months",     "de": "3 Monate",             "ru": "3 месяца"},
+                    "6 Months"         : {"en" : "6 Months",     "de": "6 Monate",             "ru": "6 месяцев"},
+                    "1 Year"           : {"en" : "1 Year",       "de": "1 Jahr",               "ru": "1 год"},
+                    "Auto"             : {"en" : "Auto",         "de": "automatisch",          "ru": "Подогнать"},
+                    "dynamic"          : {"en" : "dynamic",      "de": "dynamisch",            "ru": "динамически"},
+                    "All"              : {"en" : "All",          "de": "Unbegrenzt",           "ru": "Все данные"},
+                    "Theme"            : {"en" : "Theme",        "de": "Theme",                "ru": "Тема"},
+                    "Zoom level"       : {"en" : "Zoom level",   "de": "Zoom-Stufe",           "ru": "Уровень увеличения"},
+                    "Scrollbar "       : {"en" : "Scrollbar",    "de": "Scrollbar",            "ru": "Scroll"},
+                    "Legend"           : {"en" : "Legend",       "de": "Legende",              "ru": "Легенда"},
+                    "inside"           : {"en" : "inside",       "de": "im Chart",             "ru": "на графике"},
+                    "Zoom"             : {"en" : "Zoom",         "de": "Zoomen",               "ru": "Увеличение"},
+                    "Show loading"     : {"en": "Show loading",  "de": "Zeige Ladeprozess",    "ru": "Показать загрузку"},
+                    "Export-Button"    : {"en": "Export button", "de": "Export-Knopf",         "ru": "Экспортировать"},
+                    "Series: # selected" : {"en": "Series: # selected", "de": "Datenreihen: # ausgewählt",         "ru": "Выбрано # данных"},
+                    "select all"       : {"en": "select all",    "de": "alle auswählen",       "ru": "отметить все"},
+                    "clear selection"  : {"en": "clear selection", "de": "Auswahl aufheben",   "ru": "снять отметки"},
+                    "Navigator: -"     : {"en": "Navigator: -",  "de": "Navigator: -",         "ru": "Навигация: -"},
+                    "Navigator:"       : {"en": "Navigator:",    "de": "Navigator:",           "ru": "Навигация:"},
+                    "Series: none selected"    : {"en": "Series: none selected", "de": "Datenreihen: keine ausgewählt", "ru": "Данные не выбраны"},
+                    "Filter:"          : {"en" : "Filter:",      "de": "Filter:",              "ru": "Фильтр:"},
+                    "only for noncommercial purposes!" : {"en" : "only for noncommercial purposes!", "de": "kommerzielle Nutzung untersagt!",              "ru": "использование в коммерческих целях запрещено!"},
+                    "License"          : {"en" : "License",      "de": "Lizenz",               "ru": "Лицензия"},
+                    "Used"             : {"en" : "Used",         "de": "Verwendet",            "ru": "Используется"},
+                    "Aggregated: "     : {"en" : "Aggregated: ", "de": "Aggregiert: ",         "ru": "Группа: "},
+                    "Minutes"          : {"en" : "Minutes",      "de": "Minuten",              "ru": "Минуты"},
+                    "Hour"             : {"en" : "Hour",         "de": "Stunde",               "ru": "Час"},
+                    "Day"              : {"en" : "Day",          "de": "Tag",                  "ru": "День"},
+                    "Hours"            : {"en" : "Hours",        "de": "Stunden",              "ru": "Часов"},
+                    "Days"             : {"en" : "Days",         "de": "Tage",                 "ru": "Дней"},
+                    "from"             : {"en" : "from",         "de": "von",                  "ru": "от"},
+                    "to"               : {"en" : "to",           "de": "bis",                  "ru": "до"},
+                    "Period"           : {"en" : "Period",       "de": "Bereich",              "ru": "Область"},
+                    "1h"               : {"en" : "1h",           "de": "1S",                   "ru": "1ч"},
+                    "6h"               : {"en" : "6h",           "de": "6S",                   "ru": "6ч"},
+                    "1D"               : {"en" : "1D",           "de": "1T",                   "ru": "1д"},
+                    "1W"               : {"en" : "1W",           "de": "1W",                   "ru": "1нед"},
+                    "1M"               : {"en" : "1M",           "de": "1M",                   "ru": "1М"},
+                    "1Y"               : {"en" : "1Y",           "de": "1J",                   "ru": "1Г"},
+                    "load"             : {"en": "load",          "de": "lade",                 "ru": "загружаются"},
+                    "process"          : {"en": "process",       "de": "verarbeite",           "ru": "обрабатывается"},
+                    "load objects"     : {"en": "load objects",  "de": "lade Objekte",         "ru": "загружаются объекты"},
+                    "load indexes"     : {"en": "load indexes",  "de": "lade Index",           "ru": "загружаются индексы"},
+                    "query present log files"    : {"en": "query present log files",  "de": "frage vorhandene Logs ab",   "ru": "запрос списка файлов"},
+                    "No datapoints selected!": {"en" : "No datapoints selected!", "de": "Keine Datenpunkte ausgewählt!", "ru": "Данные не выбраны!"},
+                    "<b>Error: </b>No datapoints selected!<br/>": {
+                        "en" : "<b>Error: </b>No datapoints selected!<br/>",
+                        "de": "<b>Fehler: </b>Keine Datenpunkte ausgewählt!<br/>",
+                        "ru": "<b>Ошибка: </b>Данные не выбраны!<br/>"
+                    }
+                }
+
+            }
+            if (this.words[text]) {
+                var newText = this.words[text][lang];
+                if (newText) {
+                    text = newText;
+                } else {
+                    newText = this.words[text]["en"];
+                    if (newText) {
+                        text = newText;
+                    }
+                }
+            }
+
+            if (arg !== undefined) {
+                text = text.replace('%s', arg);
+            }
+            return text;
         }
     };
 
