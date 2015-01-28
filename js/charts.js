@@ -26,6 +26,8 @@
         socket: {},
         regaObjects: {},
         regaIndex: {},
+        datapoints: {},
+        datapointTS: null,
         oldLogs: [],
         logData: {},
         lang: (typeof ccuIoLang != 'undefined') ? ccuIoLang : 'de',
@@ -104,7 +106,7 @@
             if (chart.queryParams["period"]) {
                 var now = Math.floor(new Date().getTime() / 1000);
                 chart.start = now - (parseInt(chart.queryParams["period"], 10) * 3600);
-                chart.progressTodo = Math.ceil(parseFloat(chart.queryParams["period"]) / 24) + 4;
+                chart.progressTodo = Math.ceil(parseFloat(chart.queryParams["period"]) / 24) + 5;
             }
 
             Highcharts.setOptions({
@@ -490,6 +492,22 @@
                     for (var tmpDp in tmpArr) {
                         if (!chart.logData[tmpDp]) {
                             chart.logData[tmpDp] = [];
+
+                            // aktuellen Wert als letzten Punkt hinterlegen
+                            if (chart.datapoints[tmpDp]) {
+                                var val = chart.datapoints[tmpDp][0];
+                                if (val == true || val == "true") {
+                                    val = 1;
+                                }
+                                if (val == false || val == "false") {
+                                    val = 0;
+                                }
+                                val = parseFloat(val);
+                                if (isNaN(val)) {
+                                    val = 0;
+                                }
+                                chart.logData[tmpDp].push([chart.datapointTS, val]);
+                            }
                         }
                         chart.logData[tmpDp] = tmpArr[tmpDp].concat(chart.logData[tmpDp]);
                     }
@@ -551,30 +569,43 @@
                         chart.regaIndex = obj;
 
                         chart.ajaxDone();
-                        $("#loader_output2").prepend("<span class='ajax-loader'></span> frage vorhandene Logs ab");
+                        $("#loader_output2").prepend("<span class='ajax-loader'></span> lade Datenpunkte");
+                        // Weiter gehts mit dem Laden der Datenpunkte
+                        chart.socket.emit('getDatapoints', function(obj) {
 
-                        // alte Logfiles finden
-                        chart.socket.emit('readdir', "log", function (obj) {
-                            chart.ajaxDone();
                             chart.progressDone += 1;
                             chart.progress();
 
-                            var files = [];
-                            if (!chart.queryParams["period"] || parseFloat(chart.queryParams["period"]) == 0) {
-                                chart.progressTodo = obj.length + 1;
-                            }
-                            for (var i = 0; i < obj.length; i++) {
-                                if (obj[i].match(/devices\-variables\.log\./)) {
-                                    files.push(obj[i]);
+                            // aktuelle Werte der Datenpunkte mit Zeitstempel speichern
+                            chart.datapoints = obj;
+                            chart.datapointTS = new Date().getTime();
+
+                            chart.ajaxDone();
+                            $("#loader_output2").prepend("<span class='ajax-loader'></span> frage vorhandene Logs ab");
+
+                            // alte Logfiles finden
+                            chart.socket.emit('readdir', "log", function (obj) {
+                                chart.ajaxDone();
+                                chart.progressDone += 1;
+                                chart.progress();
+
+                                var files = [];
+                                if (!chart.queryParams["period"] || parseFloat(chart.queryParams["period"]) == 0) {
+                                    chart.progressTodo = obj.length + 1;
                                 }
-                            }
-                            files.sort();
-                            chart.oldLogs = files;
+                                for (var i = 0; i < obj.length; i++) {
+                                    if (obj[i].match(/devices\-variables\.log\./)) {
+                                        files.push(obj[i]);
+                                    }
+                                }
+                                files.sort();
+                                chart.oldLogs = files;
 
-                            chart.loadLog("devices-variables.log", chart.loadOldLogs);
+                                chart.loadLog("devices-variables.log", chart.loadOldLogs);
 
-                        })
+                            })
 
+                        });
                     });
                 });
             } else {
@@ -631,7 +662,7 @@
                 name = chart.regaObjects[chId].Name + " " + dptype + unit;
             } else {
                 if (regaObj) {
-                    name = regaObj.Name;
+                    name = regaObj.Name + unit;
                 } else {
                     name = dp;
                 }
