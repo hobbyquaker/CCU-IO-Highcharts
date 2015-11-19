@@ -81,18 +81,14 @@
                 });
 
             }
-            chart.chart.redraw();
 
             chart.ready = true;
 
-            // after init, show series one by one to avoid browser blocking
-            function showSeries(index) {
-                if (index < chart.chart.series.length) {
-                    setTimeout(showSeries, 50, index+1);
-                    chart.chart.series[index].show();
-                }
+            // show series after setting ready=true prevents browser blocking
+            for (var index = 0, l = chart.chart.series.length; index < l; index++) {
+                chart.chart.series[index].setVisible(true, false);
             }
-            showSeries(0);
+            chart.chart.redraw();
         },
         initHighcharts: function () {
 
@@ -645,8 +641,7 @@
         },
         addSeries: function (dp, navserie) {
 
-            var visible = false,
-                name,
+            var name,
                 dptype,
                 regaObj = chart.regaObjects[dp];
 
@@ -686,7 +681,7 @@
                 id: "chart_" + dp.toString(),
                 name: name,
                 valueSuffix: $("<div/>").html(unit).text(),
-                visible: visible,
+                visible: true,
                 data: chart.logData[dp],
                 events: {
                     click: function (e) {
@@ -752,6 +747,10 @@
 
             if (!navserie) {
                 serie = $.extend(true, serie, chart.customOptions[dp]);
+
+                // for some reason at least 1 series needs to be visible on init to show the rangeSelector
+                // hide all others to speed up initial draw
+                serie.visible = (chart.chartOptions.series.length == 0);
 
                 chart.chartOptions.series.push(serie);
                 chart.seriesIds.push(dp);
