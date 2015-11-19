@@ -84,6 +84,15 @@
             chart.chart.redraw();
 
             chart.ready = true;
+
+            // after init, show series one by one to avoid browser blocking
+            function showSeries(index) {
+                if (index < chart.chart.series.length) {
+                    setTimeout(showSeries, 50, index+1);
+                    chart.chart.series[index].show();
+                }
+            }
+            showSeries(0);
         },
         initHighcharts: function () {
 
@@ -410,19 +419,11 @@
                     var dataArr = data.split("\n");
                     var l = dataArr.length;
 
-                    if (chart.queryParams["dp"]) {
-                        var DPs = chart.queryParams["dp"].split(",");
-                    } else {
-                        $(".ajax-loader").removeClass("ajax-loader").addClass("ajax-fail");
-                        $("#loader_output2").prepend(chart.translate("<b>Error: </b>No datapoints selected!<br/>"));
-                        $.error(chart.translate("No datapoints selected!"));
-
-                    }
                     var tmpArr = [];
                     for (var i = 0; i < l; i++) {
                         var triple = dataArr[i].split(" ", 3);
 
-                        if (DPs.indexOf(triple[1]) !== -1) {
+                        if (chart.logData[triple[1]]) {
                             if (!tmpArr[triple[1]]) {
                                 tmpArr[triple[1]] = [];
                             }
@@ -488,25 +489,6 @@
                     }
                     // vorne anfügen
                     for (var tmpDp in tmpArr) {
-                        if (!chart.logData[tmpDp]) {
-                            chart.logData[tmpDp] = [];
-
-                            // aktuellen Wert als letzten Punkt hinterlegen
-                            if (chart.datapoints[tmpDp]) {
-                                var val = chart.datapoints[tmpDp][0];
-                                if (String(val).match(/\"?(false|off|no)\"?/)) {
-                                    val = 0;
-                                } else if (String(val).match(/\"?(true|on|yes)\"?/)) {
-                                    val = 1;
-                                } else {
-                                    val = parseFloat(val);
-                                }
-                                if (isNaN(val)) {
-                                    val = 0;
-                                }
-                                chart.logData[tmpDp].push([new Date().getTime(), val]);
-                            }
-                        }
                         chart.logData[tmpDp] = tmpArr[tmpDp].concat(chart.logData[tmpDp]);
                     }
 
@@ -579,6 +561,33 @@
                             chart.ajaxDone();
                             $("#loader_output2").prepend("<span class='ajax-loader'></span> frage vorhandene Logs ab");
 
+                            // Datenpunkte in angegebener Reihenfolge erstellen und aktuellen Wert eintragen
+                            if (!chart.queryParams["dp"]) {
+                                $(".ajax-loader").removeClass("ajax-loader").addClass("ajax-fail");
+                                $("#loader_output2").prepend(chart.translate("<b>Error: </b>No datapoints selected!<br/>"));
+                                $.error(chart.translate("No datapoints selected!"));
+                            } else {
+                                var DPs = chart.queryParams["dp"].split(",");
+                                for (var i = 0; i < DPs.length; i++) if (!chart.logData[DPs[i]]) {
+                                    chart.logData[DPs[i]] = [];
+
+                                    if (chart.datapoints[DPs[i]]) {
+                                        var val = chart.datapoints[DPs[i]][0];
+                                        if (String(val).match(/\"?(false|off|no)\"?/)) {
+                                            val = 0;
+                                        } else if (String(val).match(/\"?(true|on|yes)\"?/)) {
+                                            val = 1;
+                                        } else {
+                                            val = parseFloat(val);
+                                        }
+                                        if (isNaN(val)) {
+                                            val = 0;
+                                        }
+                                        chart.logData[DPs[i]].push([new Date().getTime(), val]);
+                                    }
+                                }
+                            }
+
                             // alte Logfiles finden
                             chart.socket.emit('readdir', "log", function (obj) {
                                 chart.ajaxDone();
@@ -636,7 +645,7 @@
         },
         addSeries: function (dp, navserie) {
 
-            var visible = true,
+            var visible = false,
                 name,
                 dptype,
                 regaObj = chart.regaObjects[dp];
