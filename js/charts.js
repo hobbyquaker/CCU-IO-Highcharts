@@ -21,13 +21,12 @@
 (function ($) {
 
     chart = {
-        version: "1.1.4",
+        version: "1.1.5",
         requiredCcuIoVersion: "1.0.15",
         socket: {},
         regaObjects: {},
         regaIndex: {},
         datapoints: {},
-        datapointTS: null,
         oldLogs: [],
         logData: {},
         lang: (typeof ccuIoLang != 'undefined') ? ccuIoLang : 'de',
@@ -429,14 +428,13 @@
                             }
                             var val = triple[2];
 
-                            if (val === false || val === "false") {
+                            if (String(val).match(/\"?(false|off|no)\"?/)) {
                                 val = 0;
-                            } else if (val === true || val === "true") {
+                            } else if (String(val).match(/\"?(true|on|yes)\"?/)) {
                                 val = 1;
                             } else {
                                 val = parseFloat(val);
                             }
-
                             if (chart.regaObjects[triple[1]]) {
 
                                 var nameArr = chart.regaObjects[triple[1]].Name.split(".");
@@ -496,17 +494,17 @@
                             // aktuellen Wert als letzten Punkt hinterlegen
                             if (chart.datapoints[tmpDp]) {
                                 var val = chart.datapoints[tmpDp][0];
-                                if (val == true || val == "true") {
-                                    val = 1;
-                                }
-                                if (val == false || val == "false") {
+                                if (String(val).match(/\"?(false|off|no)\"?/)) {
                                     val = 0;
+                                } else if (String(val).match(/\"?(true|on|yes)\"?/)) {
+                                    val = 1;
+                                } else {
+                                    val = parseFloat(val);
                                 }
-                                val = parseFloat(val);
                                 if (isNaN(val)) {
                                     val = 0;
                                 }
-                                chart.logData[tmpDp].push([chart.datapointTS, val]);
+                                chart.logData[tmpDp].push([new Date().getTime(), val]);
                             }
                         }
                         chart.logData[tmpDp] = tmpArr[tmpDp].concat(chart.logData[tmpDp]);
@@ -576,9 +574,7 @@
                             chart.progressDone += 1;
                             chart.progress();
 
-                            // aktuelle Werte der Datenpunkte mit Zeitstempel speichern
                             chart.datapoints = obj;
-                            chart.datapointTS = new Date().getTime();
 
                             chart.ajaxDone();
                             $("#loader_output2").prepend("<span class='ajax-loader'></span> frage vorhandene Logs ab");
@@ -810,13 +806,13 @@
                             var timeArr = tmp[1].split(":");
                             var ts = (new Date(dateArr[0], dateArr[1] - 1, dateArr[2], timeArr[0], timeArr[1], timeArr[2])).getTime();
                             var val = obj[1];
-                            if (val == true || val == "true") {
-                                val = 1;
-                            }
-                            if (val == false || val == "false") {
+                            if (String(val).match(/\"?(false|off|no)\"?/)) {
                                 val = 0;
+                            } else if (String(val).match(/\"?(true|on|yes)\"?/)) {
+                                val = 1;
+                            } else {
+                                val = parseFloat(val);
                             }
-                            val = parseFloat(val);
                             if (isNaN(val)) {
                                 val = 0;
                             }
