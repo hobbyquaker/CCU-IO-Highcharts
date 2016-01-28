@@ -29,6 +29,7 @@
         datapoints: {},
         oldLogs: [],
         logData: {},
+        logDataOrder: [],
         lang: (typeof ccuIoLang != 'undefined') ? ccuIoLang : 'de',
         words: null,
         months: {
@@ -509,8 +510,9 @@
                     chart.addSeries(chart.queryParams["navserie"], true);
                 }
 
-                for (var dp in chart.logData) {
-                    chart.addSeries(dp);
+                // Datenpunkte in angegebener Reihenfolge hinzufügen
+                for (var idx in chart.logDataOrder) {
+                    chart.addSeries(chart.logDataOrder[idx]);
                 }
                 $("#loader").hide();
                 $("#loader_small").hide();
@@ -557,7 +559,7 @@
                             chart.ajaxDone();
                             $("#loader_output2").prepend("<span class='ajax-loader'></span> frage vorhandene Logs ab");
 
-                            // Datenpunkte in angegebener Reihenfolge erstellen und aktuellen Wert eintragen
+                            // Datenpunkte erstellen und aktuellen Wert eintragen, angegebene Reihenfolge merken
                             if (!chart.queryParams["dp"]) {
                                 $(".ajax-loader").removeClass("ajax-loader").addClass("ajax-fail");
                                 $("#loader_output2").prepend(chart.translate("<b>Error: </b>No datapoints selected!<br/>"));
@@ -565,6 +567,7 @@
                             } else {
                                 var DPs = chart.queryParams["dp"].split(",");
                                 for (var i = 0; i < DPs.length; i++) if (!chart.logData[DPs[i]]) {
+                                    chart.logDataOrder.push(DPs[i]);
                                     chart.logData[DPs[i]] = [];
 
                                     if (chart.datapoints[DPs[i]]) {
