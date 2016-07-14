@@ -87,6 +87,7 @@
 
             // show series after setting ready=true prevents browser blocking
             for (var index = 0, l = chart.chart.series.length; index < l; index++) {
+                chart.chart.series[index].options.visible = true;
                 chart.chart.series[index].setVisible(true, false);
             }
             chart.chart.redraw();
