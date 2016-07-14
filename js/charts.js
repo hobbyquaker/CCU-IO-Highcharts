@@ -21,13 +21,15 @@
 (function ($) {
 
     chart = {
-        version: "1.1.4",
+        version: "1.1.5",
         requiredCcuIoVersion: "1.0.15",
         socket: {},
         regaObjects: {},
         regaIndex: {},
+        datapoints: {},
         oldLogs: [],
         logData: {},
+        logDataOrder: [],
         lang: (typeof ccuIoLang != 'undefined') ? ccuIoLang : 'de',
         words: null,
         months: {
@@ -80,9 +82,15 @@
                 });
 
             }
-            chart.chart.redraw();
 
             chart.ready = true;
+
+            // show series after setting ready=true prevents browser blocking
+            for (var index = 0, l = chart.chart.series.length; index < l; index++) {
+                chart.chart.series[index].options.visible = true;
+                chart.chart.series[index].setVisible(true, false);
+            }
+            chart.chart.redraw();
         },
         initHighcharts: function () {
 
@@ -104,7 +112,7 @@
             if (chart.queryParams["period"]) {
                 var now = Math.floor(new Date().getTime() / 1000);
                 chart.start = now - (parseInt(chart.queryParams["period"], 10) * 3600);
-                chart.progressTodo = Math.ceil(parseFloat(chart.queryParams["period"]) / 24) + 4;
+                chart.progressTodo = Math.ceil(parseFloat(chart.queryParams["period"]) / 24) + 5;
             }
 
             Highcharts.setOptions({
@@ -409,32 +417,23 @@
                     var dataArr = data.split("\n");
                     var l = dataArr.length;
 
-                    if (chart.queryParams["dp"]) {
-                        var DPs = chart.queryParams["dp"].split(",");
-                    } else {
-                        $(".ajax-loader").removeClass("ajax-loader").addClass("ajax-fail");
-                        $("#loader_output2").prepend(chart.translate("<b>Error: </b>No datapoints selected!<br/>"));
-                        $.error(chart.translate("No datapoints selected!"));
-
-                    }
                     var tmpArr = [];
                     for (var i = 0; i < l; i++) {
                         var triple = dataArr[i].split(" ", 3);
 
-                        if (DPs.indexOf(triple[1]) !== -1) {
+                        if (chart.logData[triple[1]]) {
                             if (!tmpArr[triple[1]]) {
                                 tmpArr[triple[1]] = [];
                             }
                             var val = triple[2];
 
-                            if (val === false || val === "false") {
+                            if (String(val).match(/\"?(false|off|no)\"?/)) {
                                 val = 0;
-                            } else if (val === true || val === "true") {
+                            } else if (String(val).match(/\"?(true|on|yes)\"?/)) {
                                 val = 1;
                             } else {
                                 val = parseFloat(val);
                             }
-
                             if (chart.regaObjects[triple[1]]) {
 
                                 var nameArr = chart.regaObjects[triple[1]].Name.split(".");
@@ -488,9 +487,6 @@
                     }
                     // vorne anfügen
                     for (var tmpDp in tmpArr) {
-                        if (!chart.logData[tmpDp]) {
-                            chart.logData[tmpDp] = [];
-                        }
                         chart.logData[tmpDp] = tmpArr[tmpDp].concat(chart.logData[tmpDp]);
                     }
 
@@ -515,8 +511,9 @@
                     chart.addSeries(chart.queryParams["navserie"], true);
                 }
 
-                for (var dp in chart.logData) {
-                    chart.addSeries(dp);
+                // Datenpunkte in angegebener Reihenfolge hinzufügen
+                for (var idx in chart.logDataOrder) {
+                    chart.addSeries(chart.logDataOrder[idx]);
                 }
                 $("#loader").hide();
                 $("#loader_small").hide();
@@ -551,30 +548,69 @@
                         chart.regaIndex = obj;
 
                         chart.ajaxDone();
-                        $("#loader_output2").prepend("<span class='ajax-loader'></span> frage vorhandene Logs ab");
+                        $("#loader_output2").prepend("<span class='ajax-loader'></span> lade Datenpunkte");
+                        // Weiter gehts mit dem Laden der Datenpunkte
+                        chart.socket.emit('getDatapoints', function(obj) {
 
-                        // alte Logfiles finden
-                        chart.socket.emit('readdir', "log", function (obj) {
-                            chart.ajaxDone();
                             chart.progressDone += 1;
                             chart.progress();
 
-                            var files = [];
-                            if (!chart.queryParams["period"] || parseFloat(chart.queryParams["period"]) == 0) {
-                                chart.progressTodo = obj.length + 1;
-                            }
-                            for (var i = 0; i < obj.length; i++) {
-                                if (obj[i].match(/devices\-variables\.log\./)) {
-                                    files.push(obj[i]);
+                            chart.datapoints = obj;
+
+                            chart.ajaxDone();
+                            $("#loader_output2").prepend("<span class='ajax-loader'></span> frage vorhandene Logs ab");
+
+                            // Datenpunkte erstellen und aktuellen Wert eintragen, angegebene Reihenfolge merken
+                            if (!chart.queryParams["dp"]) {
+                                $(".ajax-loader").removeClass("ajax-loader").addClass("ajax-fail");
+                                $("#loader_output2").prepend(chart.translate("<b>Error: </b>No datapoints selected!<br/>"));
+                                $.error(chart.translate("No datapoints selected!"));
+                            } else {
+                                var DPs = chart.queryParams["dp"].split(",");
+                                for (var i = 0; i < DPs.length; i++) if (!chart.logData[DPs[i]]) {
+                                    chart.logDataOrder.push(DPs[i]);
+                                    chart.logData[DPs[i]] = [];
+
+                                    if (chart.datapoints[DPs[i]]) {
+                                        var val = chart.datapoints[DPs[i]][0];
+                                        if (String(val).match(/\"?(false|off|no)\"?/)) {
+                                            val = 0;
+                                        } else if (String(val).match(/\"?(true|on|yes)\"?/)) {
+                                            val = 1;
+                                        } else {
+                                            val = parseFloat(val);
+                                        }
+                                        if (isNaN(val)) {
+                                            val = 0;
+                                        }
+                                        chart.logData[DPs[i]].push([new Date().getTime(), val]);
+                                    }
                                 }
                             }
-                            files.sort();
-                            chart.oldLogs = files;
 
-                            chart.loadLog("devices-variables.log", chart.loadOldLogs);
+                            // alte Logfiles finden
+                            chart.socket.emit('readdir', "log", function (obj) {
+                                chart.ajaxDone();
+                                chart.progressDone += 1;
+                                chart.progress();
 
-                        })
+                                var files = [];
+                                if (!chart.queryParams["period"] || parseFloat(chart.queryParams["period"]) == 0) {
+                                    chart.progressTodo = obj.length + 1;
+                                }
+                                for (var i = 0; i < obj.length; i++) {
+                                    if (obj[i].match(/devices\-variables\.log\./)) {
+                                        files.push(obj[i]);
+                                    }
+                                }
+                                files.sort();
+                                chart.oldLogs = files;
 
+                                chart.loadLog("devices-variables.log", chart.loadOldLogs);
+
+                            })
+
+                        });
                     });
                 });
             } else {
@@ -609,8 +645,7 @@
         },
         addSeries: function (dp, navserie) {
 
-            var visible = true,
-                name,
+            var name,
                 dptype,
                 regaObj = chart.regaObjects[dp];
 
@@ -631,7 +666,7 @@
                 name = chart.regaObjects[chId].Name + " " + dptype + unit;
             } else {
                 if (regaObj) {
-                    name = regaObj.Name;
+                    name = regaObj.Name + unit;
                 } else {
                     name = dp;
                 }
@@ -650,7 +685,7 @@
                 id: "chart_" + dp.toString(),
                 name: name,
                 valueSuffix: $("<div/>").html(unit).text(),
-                visible: visible,
+                visible: true,
                 data: chart.logData[dp],
                 events: {
                     click: function (e) {
@@ -676,6 +711,7 @@
                         $("#axis option").removeAttr("selected");
                         $("#axis option[value='" + obj.options.yAxis + "']").attr("selected", true);
 
+                        $("#step option").removeAttr("selected");
                         if (obj.options.step === null) {
                             $("#step option[value='null']").attr("selected", true);
                         } else {
@@ -716,6 +752,10 @@
 
             if (!navserie) {
                 serie = $.extend(true, serie, chart.customOptions[dp]);
+
+                // for some reason at least 1 series needs to be visible on init to show the rangeSelector
+                // hide all others to speed up initial draw
+                serie.visible = (chart.chartOptions.series.length == 0);
 
                 chart.chartOptions.series.push(serie);
                 chart.seriesIds.push(dp);
@@ -779,13 +819,13 @@
                             var timeArr = tmp[1].split(":");
                             var ts = (new Date(dateArr[0], dateArr[1] - 1, dateArr[2], timeArr[0], timeArr[1], timeArr[2])).getTime();
                             var val = obj[1];
-                            if (val == true || val == "true") {
-                                val = 1;
-                            }
-                            if (val == false || val == "false") {
+                            if (String(val).match(/\"?(false|off|no)\"?/)) {
                                 val = 0;
+                            } else if (String(val).match(/\"?(true|on|yes)\"?/)) {
+                                val = 1;
+                            } else {
+                                val = parseFloat(val);
                             }
-                            val = parseFloat(val);
                             if (isNaN(val)) {
                                 val = 0;
                             }
