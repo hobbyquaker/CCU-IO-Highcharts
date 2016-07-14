@@ -710,6 +710,7 @@
                         $("#axis option").removeAttr("selected");
                         $("#axis option[value='" + obj.options.yAxis + "']").attr("selected", true);
 
+                        $("#step option").removeAttr("selected");
                         if (obj.options.step === null) {
                             $("#step option[value='null']").attr("selected", true);
                         } else {
