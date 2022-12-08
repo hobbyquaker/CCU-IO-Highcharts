@@ -14,6 +14,8 @@
  *      OHNE IRGENDEINE GARANTIE, sogar ohne die implizite Garantie der MARKTREIFE oder der VERWENDBARKEIT FÜR EINEN
  *      BESTIMMTEN ZWECK.
  *
+ * SG, 09.02.2021 - new parameter:  skip=...  (i.e. skip=48, skips the newest 48 hours)
+ * SG, 10.02.2021 - new parameter:  scan=...  (i.e. scan=2020-0[1-6], reads only files matching this pattern)
  */
 
 ;var chart; 
@@ -21,7 +23,7 @@
 (function ($) {
 
     chart = {
-        version: "1.1.5",
+        version: "1.1.6",
         requiredCcuIoVersion: "1.0.15",
         socket: {},
         regaObjects: {},
@@ -52,7 +54,7 @@
         customOptions: {},
         seriesIds: [],
         queryParams: getUrlVars(),
-        start: "0000-00-00T00:00:00",
+        start: 0,
         done: false,
         ready: false,
         progressDone: 0,
@@ -68,7 +70,7 @@
 
                 if (axis == "navigator-y-axis") continue;
 
-                console.log(name + " yAxis=" + axis);
+//                console.log(name + " yAxis=" + axis);
                 var unit = name.split(" ");
                 unit = unit[unit.length - 1];
 
@@ -109,10 +111,16 @@
                 $("#loader_small").hide();
             }
 
-            if (chart.queryParams["period"]) {
-                var now = Math.floor(new Date().getTime() / 1000);
-                chart.start = now - (parseInt(chart.queryParams["period"], 10) * 3600);
-                chart.progressTodo = Math.ceil(parseFloat(chart.queryParams["period"]) / 24) + 5;
+            var now = Math.floor(new Date().getTime() / 1000);
+            if (chart.queryParams["period"] && (parseFloat(chart.queryParams["period"]) > 0)) {
+                var periodFloat = parseFloat(chart.queryParams["period"]);
+                if (chart.queryParams["skip"]) periodFloat += parseFloat(chart.queryParams["skip"]);
+                chart.start = now - Math.floor(periodFloat * 3600);
+                chart.progressTodo = Math.ceil(periodFloat / 24) + 6;
+            }
+
+            if (chart.queryParams["skip"] && (parseFloat(chart.queryParams["skip"]) > 0)) {
+                chart.skip = now - Math.floor(parseFloat(chart.queryParams["skip"]) * 3600);
             }
 
             Highcharts.setOptions({
@@ -304,19 +312,6 @@
                 },
                 opposite: true
             });
-            /*
-             chart.chartOptions.yAxis.push({
-             title: {
-             text: ""
-             },
-             labels: {
-             useHTML: true,
-             formatter: function() {
-             return this.value;
-             }
-             },
-             opposite: true
-             });*/
             //}
 
             if (chart.queryParams["scrollbar"] == "false") {
@@ -410,81 +405,94 @@
                 type: "GET",
                 url: '/log/' + log,
                 success: function (data) {
-                    chart.progressDone += 1;
-                    chart.progress();
+                    chart.progress('loadLog');
                     chart.ajaxDone();
-                    $("#loader_output2").prepend("<span class='ajax-loader'></span> " + chart.translate("process") + " " + log + " ");
+
                     var dataArr = data.split("\n");
                     var l = dataArr.length;
+                    while (dataArr[l-1] == "") {
+                        // remove empty lines at end
+                        dataArr.pop();
+                        l -= 1;
+                    }
+
+                    // moved creation of DPs to the start!
 
                     var tmpArr = [];
-                    for (var i = 0; i < l; i++) {
-                        var triple = dataArr[i].split(" ", 3);
+                    var fromTS = (dataArr[0].split(" ", 3))[0];
+                    var toTS = (dataArr[l-1].split(" ", 3))[0];
+                    if (isNaN(fromTS) || fromTS <= 31536000 || fromTS == "") fromTS = chart.skip;
+                    if (isNaN(toTS)   || toTS   <= 31536000 || toTS   == "") toTS   = chart.start;
+                    if ((toTS < chart.start) || (chart.skip && (fromTS > chart.skip))) {
+                        // skip files without matching timestamps
+                        $("#loader_output2").prepend("<span class='ajax-loader'></span> Überspringe " + log + " ");
+                    } else {
+                        $("#loader_output2").prepend("<span class='ajax-loader'></span> " + chart.translate("process") + " " + log + " ");
+                        for (var i = 0; i < l; i++) {
+                            var triple = dataArr[i].split(" ", 3);
 
-                        if (chart.logData[triple[1]]) {
-                            if (!tmpArr[triple[1]]) {
-                                tmpArr[triple[1]] = [];
-                            }
-                            var val = triple[2];
+                            // skip year 1970 (< 31536000 is first year)
+                            if (!isNaN(triple[0]) && triple[0] > 31536000 && triple[0] != "") {
 
-                            if (String(val).match(/\"?(false|off|no)\"?/)) {
-                                val = 0;
-                            } else if (String(val).match(/\"?(true|on|yes)\"?/)) {
-                                val = 1;
-                            } else {
-                                val = parseFloat(val);
-                            }
-                            if (chart.regaObjects[triple[1]]) {
+                                if (triple[0] < (chart.start)) {
+                                    chart.done = true;
 
-                                var nameArr = chart.regaObjects[triple[1]].Name.split(".");
+                                } else if (chart.logData[triple[1]] && (!chart.skip || (triple[0] <= chart.skip))) {
+                                    if (!tmpArr[triple[1]]) {
+                                        tmpArr[triple[1]] = [];
+                                    }
+                                    var val = triple[2];
 
-                                if (chart.regaObjects[triple[1]].Parent) {
-
-                                    if (config.channelDpTypes[chart.regaObjects[chart.regaObjects[triple[1]].Parent].HssType] && config.channelDpTypes[chart.regaObjects[chart.regaObjects[triple[1]].Parent].HssType][nameArr[2]] && config.channelDpTypes[chart.regaObjects[chart.regaObjects[triple[1]].Parent].HssType][nameArr[2]].factor) {
-                                        val = val * config.channelDpTypes[chart.regaObjects[chart.regaObjects[triple[1]].Parent].HssType][nameArr[2]].factor;
+                                    if (String(val).match(/\"?(false|off|no)\"?/)) {
+                                        val = 0;
+                                    } else if (String(val).match(/\"?(true|on|yes)\"?/)) {
+                                        val = 1;
                                     } else {
-                                        if (nameArr[2] && config.dpTypes[nameArr[2]] && config.dpTypes[nameArr[2]].factor) {
-                                            val = val * config.dpTypes[nameArr[2]].factor;
+                                        val = parseFloat(val);
+                                    }
+                                    if (chart.regaObjects[triple[1]]) {
+
+                                        var nameArr = chart.regaObjects[triple[1]].Name.split(".");
+
+                                        if (chart.regaObjects[triple[1]].Parent) {
+
+                                            if (config.channelDpTypes[chart.regaObjects[chart.regaObjects[triple[1]].Parent].HssType] && config.channelDpTypes[chart.regaObjects[chart.regaObjects[triple[1]].Parent].HssType][nameArr[2]] && config.channelDpTypes[chart.regaObjects[chart.regaObjects[triple[1]].Parent].HssType][nameArr[2]].factor) {
+                                                val = val * config.channelDpTypes[chart.regaObjects[chart.regaObjects[triple[1]].Parent].HssType][nameArr[2]].factor;
+                                            } else {
+                                                if (nameArr[2] && config.dpTypes[nameArr[2]] && config.dpTypes[nameArr[2]].factor) {
+                                                    val = val * config.dpTypes[nameArr[2]].factor;
+                                                }
+
+                                            }
+
+                                        } else {
+
+                                            if (nameArr[2] && config.dpTypes[nameArr[2]] && config.dpTypes[nameArr[2]].factor) {
+                                                val = val * config.dpTypes[nameArr[2]].factor;
+                                            }
+
+                                        }
+
+                                        if (chart.regaObjects[triple[1]].ValueUnit == "100%") {
+                                            val = val * 100;
                                         }
 
                                     }
 
-                                } else {
-
-                                    if (nameArr[2] && config.dpTypes[nameArr[2]] && config.dpTypes[nameArr[2]].factor) {
-                                        val = val * config.dpTypes[nameArr[2]].factor;
+                                    if (isNaN(val)) {
+                                        val = 0;
                                     }
 
-                                }
-
-                                if (chart.regaObjects[triple[1]].ValueUnit == "100%") {
-                                    val = val * 100;
-                                }
-
-                            }
-
-                            if (isNaN(val)) {
-                                val = 0;
-                            }
-
-                            if (!isNaN(triple[0])) {
-                                if (triple[0] >= (chart.start)) {
                                     tmpArr[triple[1]].push([triple[0] * 1000, val]);
-                                } else {
-                                    chart.done = true;
+
                                 }
 
                             }
 
-                        }
-
-                        if (!isNaN(triple[0]) && triple[0] != 0 && triple[0] != "") {
-                            if (triple[0] < (chart.start)) {
-                                chart.done = true;
-                            }
                         }
 
                     }
+
                     // vorne anfügen
                     for (var tmpDp in tmpArr) {
                         chart.logData[tmpDp] = tmpArr[tmpDp].concat(chart.logData[tmpDp]);
@@ -511,15 +519,13 @@
                     chart.addSeries(chart.queryParams["navserie"], true);
                 }
 
-                // Datenpunkte in angegebener Reihenfolge hinzufügen
                 for (var idx in chart.logDataOrder) {
                     chart.addSeries(chart.logDataOrder[idx]);
                 }
                 $("#loader").hide();
                 $("#loader_small").hide();
 
-                chart.progressDone += 1;
-                chart.progress();
+                chart.progress('loadOldLogs');
 
                 chart.renderChart();
 
@@ -531,82 +537,92 @@
             return ts;
         },
         loadData: function () {
-            $("#loader_output2").prepend("<span class='ajax-loader'></span> lade Objekte");
             if (chart.socket) {
-                chart.socket.emit('getObjects', function(obj) {
-                    chart.progressDone += 1;
-                    chart.progress();
-
-                    chart.regaObjects = obj;
+                // alte Logfiles finden
+                $("#loader_output2").prepend("<span class='ajax-loader'></span> " + chart.translate("query present log files"));
+                chart.socket.emit('readdir', "log", function (obj) {
                     chart.ajaxDone();
-                    $("#loader_output2").prepend("<span class='ajax-loader'></span> lade Index");
-                    // Weiter gehts mit dem Laden des Index
-                    chart.socket.emit('getIndex', function(obj) {
-                        chart.progressDone += 1;
-                        chart.progress();
+                    chart.progress('readdir');
 
-                        chart.regaIndex = obj;
+                    var files = [];
+                    var fileMatch = new RegExp("devices\-variables\.log\." + (chart.queryParams["scan"] || ""));
+                    for (var i = 0; i < obj.length; i++) {
+                        //if (obj[i].match(/devices\-variables\.log\./)) {
+                        if (obj[i].match(fileMatch)) {
+                            if (obj[i].match(/(\.(br|gz))$/)) {
+                                files.push(obj[i].substr(0, obj[i].length - 3));
+                            } else {
+                                files.push(obj[i]);
+                            }
+                        }
+                    }
+                    files.sort();
+                    chart.oldLogs = files;
 
+                    if (!chart.queryParams["period"] || parseFloat(chart.queryParams["period"]) == 0 || (chart.progressTodo - files.length) > 5) {
+                        chart.progressTodo = files.length + 6;
+                    }
+
+                    $("#loader_output2").prepend("<span class='ajax-loader'></span> " + chart.translate("load objects"));
+                    chart.socket.emit('getObjects', function(obj) {
+                        chart.progress('loadData');
+
+                        chart.regaObjects = obj;
                         chart.ajaxDone();
-                        $("#loader_output2").prepend("<span class='ajax-loader'></span> lade Datenpunkte");
-                        // Weiter gehts mit dem Laden der Datenpunkte
-                        chart.socket.emit('getDatapoints', function(obj) {
+                        $("#loader_output2").prepend("<span class='ajax-loader'></span> " + chart.translate("load indexes"));
+                        // Weiter gehts mit dem Laden des Index
+                        chart.socket.emit('getIndex', function(obj) {
+                            chart.progress('getIndex');
 
-                            chart.progressDone += 1;
-                            chart.progress();
-
-                            chart.datapoints = obj;
+                            chart.regaIndex = obj;
 
                             chart.ajaxDone();
-                            $("#loader_output2").prepend("<span class='ajax-loader'></span> frage vorhandene Logs ab");
-
-                            // Datenpunkte erstellen und aktuellen Wert eintragen, angegebene Reihenfolge merken
-                            if (!chart.queryParams["dp"]) {
-                                $(".ajax-loader").removeClass("ajax-loader").addClass("ajax-fail");
-                                $("#loader_output2").prepend(chart.translate("<b>Error: </b>No datapoints selected!<br/>"));
-                                $.error(chart.translate("No datapoints selected!"));
-                            } else {
-                                var DPs = chart.queryParams["dp"].split(",");
-                                for (var i = 0; i < DPs.length; i++) if (!chart.logData[DPs[i]]) {
-                                    chart.logDataOrder.push(DPs[i]);
-                                    chart.logData[DPs[i]] = [];
-
-                                    if (chart.datapoints[DPs[i]]) {
-                                        var val = chart.datapoints[DPs[i]][0];
-                                        if (String(val).match(/\"?(false|off|no)\"?/)) {
-                                            val = 0;
-                                        } else if (String(val).match(/\"?(true|on|yes)\"?/)) {
-                                            val = 1;
-                                        } else {
-                                            val = parseFloat(val);
-                                        }
-                                        if (isNaN(val)) {
-                                            val = 0;
-                                        }
-                                        chart.logData[DPs[i]].push([new Date().getTime(), val]);
-                                    }
-                                }
-                            }
-
-                            // alte Logfiles finden
-                            chart.socket.emit('readdir', "log", function (obj) {
+                            $("#loader_output2").prepend("<span class='ajax-loader'></span> " + chart.translate("load datapoints"));
+                            // Weiter gehts mit dem Laden der Datenpunkte
+                            chart.socket.emit('getDatapoints', function(obj) {
                                 chart.ajaxDone();
-                                chart.progressDone += 1;
-                                chart.progress();
+                                chart.progress('getDatapoints');
 
-                                var files = [];
-                                if (!chart.queryParams["period"] || parseFloat(chart.queryParams["period"]) == 0) {
-                                    chart.progressTodo = obj.length + 1;
-                                }
-                                for (var i = 0; i < obj.length; i++) {
-                                    if (obj[i].match(/devices\-variables\.log\./)) {
-                                        files.push(obj[i]);
+                                chart.datapoints = obj;
+
+                                // Datenpunkte in angegebener Reihenfolge erstellen und aktuellen Wert eintragen
+                                if (!chart.queryParams["dp"]) {
+                                    $(".ajax-loader").removeClass("ajax-loader").addClass("ajax-fail");
+                                    $("#loader_output2").prepend(chart.translate("<b>Error: </b>No datapoints selected!<br/>"));
+                                    $.error(chart.translate("No datapoints selected!"));
+                                } else {
+                                    var DPs = chart.queryParams["dp"].split(",");
+                                    for (var i = 0; i < DPs.length; i++) if (!chart.logData[DPs[i]]) {
+                                        chart.logDataOrder.push(DPs[i]);
+                                        chart.logData[DPs[i]] = [];
+                                        if (chart.datapoints[DPs[i]]) {
+                                            var val = chart.datapoints[DPs[i]][0];
+                                            if (String(val).match(/\"?(false|off|no)\"?/)) {
+                                                val = 0;
+                                            } else if (String(val).match(/\"?(true|on|yes)\"?/)) {
+                                                val = 1;
+                                            } else {
+                                                val = parseFloat(val);
+                                            }
+                                            if (isNaN(val)) {
+                                                val = 0;
+                                            }
+
+                                            if (!chart.queryParams["scan"]) {
+                                                var endDate = (chart.skip ? new Date(chart.skip * 1000) : new Date());
+                                                chart.logData[DPs[i]].push([endDate.getTime(), val]);
+                                            }
+                                        }
                                     }
                                 }
-                                files.sort();
-                                chart.oldLogs = files;
 
-                                chart.loadLog("devices-variables.log", chart.loadOldLogs);
+                                // now process all files
+                                if (chart.queryParams["scan"]) {
+                                    // do not read "devices-variables.log" when scan pattern is given
+                                    chart.loadOldLogs();
+                                } else {
+                                    chart.loadLog("devices-variables.log", chart.loadOldLogs);
+                                }
 
                             })
 
@@ -614,6 +630,7 @@
                     });
                 });
             } else {
+                $("#loader_output2").prepend("<span class='ajax-loader'></span> lade Demo Views");
                 // local
                 // Load from ../datastore/local-data.json the demo views
                 $.ajax({
@@ -625,7 +642,7 @@
                     success: function (data) {
                         chart.ajaxDone();
                         chart.progressDone += 1;
-                        chart.progress();
+                        chart.progress('load demo views');
 
                         var _localData = $.parseJSON(data);
                         chart.regaIndex   = _localData.metaIndex;
@@ -754,9 +771,7 @@
                 serie = $.extend(true, serie, chart.customOptions[dp]);
 
                 // for some reason at least 1 series needs to be visible on init to show the rangeSelector
-                // hide all others to speed up initial draw
                 serie.visible = (chart.chartOptions.series.length == 0);
-
                 chart.chartOptions.series.push(serie);
                 chart.seriesIds.push(dp);
             } else {
@@ -770,7 +785,6 @@
 
                 }
                 chart.chartOptions.navigator.series = serie;
-
             }
         },
         connect: function () {
@@ -783,8 +797,7 @@
                 chart.socket = io.connect( $(location).attr('protocol') + '//' +  $(location).attr('host') + '?key=' + socketSession);
 
                 chart.socket.on('connect', function() {
-                    chart.progressDone += 1;
-                    chart.progress();
+                    chart.progress('connect');
                 });
 
                 chart.socket.emit('getSettings', function (ccuIoSettings) {
@@ -800,10 +813,8 @@
         },
         init: function () {
 
-
-
-            // Von CCU.IO empfangene Events verarbeiten
-            if (chart.queryParams["live"] != "false") {
+            // Von CCU.IO empfangene Events verarbeiten (nur bei Aufruf ohne skip)
+            if (!chart.skip && (chart.queryParams["live"] != "false")) {
 
                 chart.socket.on('event', function (obj) {
                     if (chart.ready) {
@@ -854,13 +865,12 @@
             }
 
         },
-        progress: function () {
-            //console.log("todo="+chart.progressTodo+" done="+chart.progressDone);
+        progress: function (currentStep) {
+            if (currentStep) chart.progressDone += 1;
             var progressPercent = Math.floor(100 / (chart.progressTodo / chart.progressDone));
             if (!isFinite(progressPercent)) {
                 progressPercent = 0;
             }
-            //console.log("progress "+progressPercent);
             if (progressPercent > 100) {
                 progressPercent = 100;
             }
@@ -1016,6 +1026,7 @@
                     "process"          : {"en": "process",       "de": "verarbeite",           "ru": "обрабатывается"},
                     "load objects"     : {"en": "load objects",  "de": "lade Objekte",         "ru": "загружаются объекты"},
                     "load indexes"     : {"en": "load indexes",  "de": "lade Index",           "ru": "загружаются индексы"},
+                    "load datapoints"  : {"en": "load datapoints","de": "lade Datenpunkte",    "ru": "загружаются точки данных"},
                     "query present log files"    : {"en": "query present log files",  "de": "frage vorhandene Logs ab",   "ru": "запрос списка файлов"},
                     "No datapoints selected!": {"en" : "No datapoints selected!", "de": "Keine Datenpunkte ausgewählt!", "ru": "Данные не выбраны!"},
                     "<b>Error: </b>No datapoints selected!<br/>": {
